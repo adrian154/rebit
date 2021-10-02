@@ -1,3 +1,5 @@
+// TODO: better validation
+
 const {BufferBuilder, BufferReader} = require("./buffer-util.js");
 
 const serialize = (block) => {

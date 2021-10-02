@@ -62,10 +62,4 @@ class BufferReader {
 
 };
 
-x = new BufferReader(Buffer.from([0xff, 0xab, 0x73, 0xae]));
-y = x.readBuffer(2);
-y[1] = 5;
-
-console.log(x, y);
-
 module.exports = {BufferBuilder, BufferReader};
