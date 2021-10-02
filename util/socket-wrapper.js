@@ -74,4 +74,4 @@ class SocketWrapper {
 
 };
 
-module.exports = {SocketWrapper};
+module.exports = SocketWrapper;
