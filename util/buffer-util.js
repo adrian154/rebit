@@ -80,9 +80,11 @@ class BufferReader {
         return before;
     }
 
-    readUInt8()    { return this.buffer.readUInt8(this.advance(1)); }
-    readInt32LE()  { return this.buffer.readInt32LE(this.advance(4)); }
-    readUInt32LE() { return this.buffer.readUint32LE(this.advance(4)); }   
+    readUInt8()     { return this.buffer.readUInt8(this.advance(1)); }
+    readInt32LE()   { return this.buffer.readInt32LE(this.advance(4)); }
+    readUInt32LE()  { return this.buffer.readUInt32LE(this.advance(4)); }
+    readInt64LE()   { return this.buffer.readBigInt64LE(this.advance(8)); }   
+    readUInt64LE()  { return this.buffer.readBigUInt64LE(this.advance(8)); }
 
     // Copy the buffer to avoid inadvertent modifications (see Buffer#slice())
     readBuffer(length) {
