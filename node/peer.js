@@ -1,6 +1,7 @@
 const SocketWrapper = require("../util/socket-wrapper.js");
 const Connection = require("../protocol/connection.js");
 const {randomUInt64} = require("../util/crypto.js");
+const PingPong = require("../protocol/pingpong.js");
 const Version = require("../protocol/version.js");
 const {ipToString} = require("../util/misc.js");
 const misc = require("../util/misc.js");
@@ -73,6 +74,17 @@ class Peer {
 
         this.connection.on("verack", message => {
             this.versionAcknowledged = true;
+        });
+
+        this.connection.on("ping", message => {
+            if(this.versionAcknowledged) {
+                this.connection.send({
+                    command: "pong",
+                    payload: PingPong.serialize({
+                        nonce: message.nonce
+                    })
+                })
+            }
         });
 
     }

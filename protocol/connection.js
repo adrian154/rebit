@@ -3,11 +3,17 @@ const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
 const {COMMAND_NAME_LENGTH, MAINNET_MAGIC} = require("./constants.js");
 
+// ping/pong
+const PingPong = require("./pingpong.js");
+
 // map commands -> deserializers
 const DESERIALIZERS = {
     version: require("./version.js").deserialize,
     verack: () => {},
-    sendheaders: () => {}
+    sendheaders: () => {},
+    sendcmpct: require("./sendcmpct.js").deserialize,
+    ping: PingPong.deserialize,
+    pong: PingPong.deserialize
 };
 
 // Abstract away message handling and deserialization
