@@ -28,7 +28,7 @@ class BufferBuilder {
         if(value < 0xFD)       { this.buffers.push(Buffer.from([value])); return this; }
         if(value < 0xFFFF)     { this.buffers.push(Buffer.from([0xFD, value & 0xff, (value >> 8) & 0xff])); return this; }
         if(value < 0xFFFFFFFF) { this.buffers.push(Buffer.from([0xFE, value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, (value >> 24) & 0xff])); return this; }
-        throw new Error("Use putBigVarInT()");
+        throw new Error("Use putBigVarInt()");
     }
 
     // for some ungodly reason you cannot mix numbers and bigints in Buffer#from()
@@ -86,6 +86,9 @@ class BufferReader {
     readInt64LE()   { return this.buffer.readBigInt64LE(this.advance(8)); }   
     readUInt64LE()  { return this.buffer.readBigUInt64LE(this.advance(8)); }
 
+    // disgusting method for use w/ readBigVarInt()
+    readBigUInt8()  { return BigInt(this.readUInt8()); }
+
     // Copy the buffer to avoid inadvertent modifications (see Buffer#slice())
     readBuffer(length) {
         return Buffer.from(this.buffer.slice(this.advance(length), this.offset));
@@ -96,7 +99,22 @@ class BufferReader {
         if(first < 0xFD) return first;
         if(first < 0xFE) return this.readUInt8() | (this.readUInt8() << 8);
         if(first < 0xFF) return this.readUInt8() | (this.readUInt8() << 8) | (this.readUInt8() << 16) | (this.readUInt8() << 24);
-        throw new Error("64-bit integers not yet supported!");
+        throw new Error("Use readBigVarInt()");
+    }
+
+    readBigVarInt() {
+        const first = this.readBigUInt8();
+        if(first < 0xFD) return first;
+        if(first < 0xFE) return this.readBigUInt8() | (this.readBigUInt8() << 8n);
+        if(first < 0xFF) return this.readBigUInt8() | (this.readBigUInt8 << 8n) | (this.readBigUInt8() << 16n) | (this.readBigUInt8 << 24n);
+        return (this.readBigUInt8()) |
+               (this.readBigUInt8() << 8n) |
+               (this.readBigUInt8() << 16n) |
+               (this.readBigUInt8() << 24n) |
+               (this.readBigUInt8() << 32n) |
+               (this.readBigUInt8() << 40n) |
+               (this.readBigUInt8() << 48n) |
+               (this.readBigUInt8() << 56n);
     }
 
 };
