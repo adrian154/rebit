@@ -1,3 +1,4 @@
+const {EventEmitter} = require("events");
 const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
 
@@ -11,10 +12,8 @@ const DESERIALIZERS = {
     verack: () => {} 
 };
 
-// Eventually, this class will also store peer state
-class Connection {
+class Connection extends EventEmitter {
 
-    // this project should've really been written in TypeScript
     constructor(socketWrapper) {
         this.socket = socketWrapper;
         this.startMessageLoop();
@@ -74,10 +73,8 @@ class Connection {
                 throw new Error(`Can't deserialize unknown command "${command}"`);
             }
 
-            const message = DESERIALIZERS[command](payload, this.version);
-
-            // TODO: do something with this message
-            console.log(message);
+            // emit event
+            this.emit(command, DESERIALIZERS[command](payload, this.version));
 
         }
 
