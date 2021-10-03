@@ -26,6 +26,8 @@ class Peer {
 
         this.connection.on("ready", async () => {
             
+            this.versionNonce = await randomUInt64();
+
             this.connection.send({
                 command: "version",
                 payload: Version.serialize({
@@ -42,7 +44,7 @@ class Peer {
                         ip: Buffer.alloc(16),
                         port: 0
                     },
-                    nonceBig: await randomUInt64(),
+                    nonceBig: this.versionNonce,
                     userAgent: "Rebit",
                     startHeight: 0,
                     relay: false
@@ -52,12 +54,21 @@ class Peer {
         });
 
         this.connection.on("version", message => {
-            console.log(message);
+            
+            // don't connect to self
+            if(this.versionNonce === message.nonceBig) {
+                this.connection.close();
+                return;
+            }
+
+            console.log(`Connected to peer (running ${message.userAgent})`);
+
             this.version = message.version;
             this.connection.send({
                 command: "verack",
                 payload: Buffer.alloc(0)
             });
+
         });
 
         this.connection.on("verack", message => {

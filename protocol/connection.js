@@ -23,6 +23,10 @@ class Connection extends EventEmitter {
         });
     }
 
+    close() {
+        this.socket.socket.close();
+    }
+
     // serialize network message
     // TODO: figure out if payload serialization belongs here
     send(message) {
