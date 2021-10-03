@@ -6,7 +6,8 @@ const {COMMAND_NAME_LENGTH, MAINNET_MAGIC} = require("./constants.js");
 // map commands -> deserializers
 const DESERIALIZERS = {
     version: require("./version.js").deserialize,
-    verack: () => {} 
+    verack: () => {},
+    sendheaders: () => {}
 };
 
 // Abstract away message handling and deserialization

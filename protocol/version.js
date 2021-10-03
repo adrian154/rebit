@@ -11,12 +11,11 @@ const serialize = (version) => {
     builder.putUInt64LE(version.timestampBig);
     builder.putBuffer(Address.serialize(version.receiverAddr));
 
-    if(version.version >= 106) {
-        builder.putBuffer(Address.serialize(version.senderAddr));
-        builder.putUInt64LE(version.nonceBig);
-        builder.putVarStr(version.userAgent);
-        builder.putInt32LE(version.startHeight);
-    }
+    // assume protocol version >= 209
+    builder.putBuffer(Address.serialize(version.senderAddr));
+    builder.putUInt64LE(version.nonceBig);
+    builder.putVarStr(version.userAgent);
+    builder.putInt32LE(version.startHeight);
 
     if(version.version >= 70001) {
         builder.putUInt8(version.relay);
@@ -38,12 +37,11 @@ const deserialize = (obj) => {
     result.timestampBig = reader.readUInt64LE();
     result.receiverAddr = Address.deserialize(reader, result.version, true);
 
-    if(result.version >= 106) {
-        result.senderAddr = Address.deserialize(reader, result.version, true);
-        result.nonceBig = reader.readUInt64LE();
-        result.userAgent = reader.readVarStr(MAX_USER_AGENT_LENGTH); 
-        result.startHeight = reader.readInt32LE();
-    }
+    // assume protocol version >= 209
+    result.senderAddr = Address.deserialize(reader, result.version, true);
+    result.nonceBig = reader.readUInt64LE();
+    result.userAgent = reader.readVarStr(MAX_USER_AGENT_LENGTH); 
+    result.startHeight = reader.readInt32LE();
 
     if(result.version >= 70001) {
         result.relay = Boolean(reader.readUInt8());
