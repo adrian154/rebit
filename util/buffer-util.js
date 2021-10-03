@@ -108,13 +108,13 @@ class BufferReader {
         if(first < 0xFE) return this.readBigUInt8() | (this.readBigUInt8() << 8n);
         if(first < 0xFF) return this.readBigUInt8() | (this.readBigUInt8 << 8n) | (this.readBigUInt8() << 16n) | (this.readBigUInt8 << 24n);
         return (this.readBigUInt8()) |
-               (this.readBigUInt8() << 8n) |
-               (this.readBigUInt8() << 16n) |
-               (this.readBigUInt8() << 24n) |
-               (this.readBigUInt8() << 32n) |
-               (this.readBigUInt8() << 40n) |
-               (this.readBigUInt8() << 48n) |
-               (this.readBigUInt8() << 56n);
+            (this.readBigUInt8() << 8n) |
+            (this.readBigUInt8() << 16n) |
+            (this.readBigUInt8() << 24n) |
+            (this.readBigUInt8() << 32n) |
+            (this.readBigUInt8() << 40n) |
+            (this.readBigUInt8() << 48n) |
+            (this.readBigUInt8() << 56n);
     }
 
 };
