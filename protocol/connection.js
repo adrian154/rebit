@@ -3,8 +3,9 @@ const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
 const {COMMAND_NAME_LENGTH, MAINNET_MAGIC} = require("./constants.js");
 
-// ping/pong
+// some messages share deserializers
 const PingPong = require("./pingpong.js");
+const GetheadersGetblocks = require("./getheaders-getblocks");
 
 // map commands -> deserializers
 const DESERIALIZERS = {
@@ -13,7 +14,9 @@ const DESERIALIZERS = {
     sendheaders: () => {},
     sendcmpct: require("./sendcmpct.js").deserialize,
     ping: PingPong.deserialize,
-    pong: PingPong.deserialize
+    pong: PingPong.deserialize,
+    getheaders: GetheadersGetblocks.deserialize,
+    getblocks: GetheadersGetblocks.deserialize
 };
 
 // Abstract away message handling and deserialization
@@ -88,7 +91,9 @@ class Connection extends EventEmitter {
             }
 
             // emit event
-            this.emit(command, DESERIALIZERS[command](payload, this.version));
+            const message = DESERIALIZERS[command](payload, this.version);
+            console.log(command, message);
+            this.emit(command, message);
 
         }
 

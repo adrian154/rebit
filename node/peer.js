@@ -87,6 +87,20 @@ class Peer {
             }
         });
 
+        this.connection.on("sendheaders", message => {
+            if(this.versionAcknowledged) {
+                this.canSendHeaders = true; // this message indicates that headers can be sent via `headers` instead of `inv`
+            }
+        });
+
+        this.connection.on("sendcmpct", message => {
+            // TODO
+        });
+
+        this.connection.on("getheaders", message => {
+            // TODO
+        });
+
     }
 
 }
