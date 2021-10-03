@@ -7,9 +7,11 @@ const TESTNET_MAGIC = Buffer.from([0xFA, 0xBF, 0xB5, 0xDA]);
 
 // map commands -> deserializers
 const DESERIALIZERS = {
-    
+    version: require("./version.js").deserialize,
+    verack: () => {} 
 };
 
+// Eventually, this class will also store peer state
 class Connection {
 
     // this project should've really been written in TypeScript
@@ -35,7 +37,7 @@ class Connection {
 
     }
 
-    // is this a cursed pattern? I think so
+    // cursed pattern
     async startMessageLoop() {
 
         await this.socket.ready();
@@ -72,9 +74,10 @@ class Connection {
                 throw new Error(`Can't deserialize unknown command "${command}"`);
             }
 
-            const message = DESERIALIZERS[command](payload);
+            const message = DESERIALIZERS[command](payload, this.version);
 
             // TODO: do something with this message
+            console.log(message);
 
         }
 

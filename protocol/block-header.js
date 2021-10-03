@@ -15,9 +15,9 @@ const serialize = (block) => {
 
 };
 
-const deserialize = (buffer) => {
+const deserialize = (obj) => {
 
-    const reader = new BufferReader(buffer);
+    const reader = obj instanceof BufferReader ? obj : new BufferReader(obj);
     
     return {
         version: reader.readInt32LE(),

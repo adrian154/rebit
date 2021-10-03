@@ -14,12 +14,12 @@ const serialize = (address) => {
 };
 
 // Network addresses sent in the version message lack the time field
-const deserialize = (buffer, version, isVersionMessage) => {
+const deserialize = (obj, version, isVersionMessage) => {
 
-    const reader = new BufferReader(buffer);
+    const reader = obj instanceof BufferReader ? obj : new BufferReader(obj);
     const result = {};
 
-    if(version >= 31402 || !isVersionMessage) result.time = reader.readUInt32LE();
+    if(version >= 31402 && !isVersionMessage) result.time = reader.readUInt32LE();
     result.servicesBig = reader.readUInt64LE();
     result.ip = reader.readBuffer(16);
     result.port = reader.readUInt16BE();

@@ -25,8 +25,6 @@ class SocketWrapper {
 
         this.socket.on("data", (data) => {
 
-            console.log(data);
-
             if(this.buffer) {
                 this.buffer = Buffer.concat([this.buffer, data]);
             } else {
