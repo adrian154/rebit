@@ -1,5 +1,6 @@
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
 const Address = require("./address.js");
+const {MAX_USER_AGENT_LENGTH} = require("./constants.js");
 
 const serialize = (version) => {
 
@@ -40,7 +41,7 @@ const deserialize = (obj) => {
     if(result.version >= 106) {
         result.senderAddr = Address.deserialize(reader, result.version, true);
         result.nonceBig = reader.readUInt64LE();
-        result.userAgent = reader.readVarStr(256); // max = 256 (net.h:59)
+        result.userAgent = reader.readVarStr(MAX_USER_AGENT_LENGTH); 
         result.startHeight = reader.readInt32LE();
     }
 

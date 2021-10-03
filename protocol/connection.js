@@ -1,10 +1,7 @@
 const {EventEmitter} = require("events");
 const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
-
-// magic number (chainparams.cpp:102)
-const MAINNET_MAGIC = Buffer.from([0xF9, 0xBE, 0xB4, 0xD9]);
-const TESTNET_MAGIC = Buffer.from([0xFA, 0xBF, 0xB5, 0xDA]);
+const {COMMAND_NAME_LENGTH, MAINNET_MAGIC} = require("./constants.js");
 
 // map commands -> deserializers
 const DESERIALIZERS = {
@@ -12,21 +9,28 @@ const DESERIALIZERS = {
     verack: () => {} 
 };
 
+// Abstract away message handling and deserialization
 class Connection extends EventEmitter {
 
-    constructor(socketWrapper) {
+    constructor(socketWrapper, options) {
+        super();
+        this.magic = options?.magic || MAINNET_MAGIC;
         this.socket = socketWrapper;
-        this.startMessageLoop();
+        this.socket.ready().then(() => {
+            this.startMessageLoop();
+            this.emit("ready");
+        });
     }
 
     // serialize network message
+    // TODO: figure out if payload serialization belongs here
     send(message) {
         
         const builder = new BufferBuilder();
-        const commandBuf = Buffer.alloc(12).fill(message.command, 0, message.command.length);
+        const commandBuf = Buffer.alloc(COMMAND_NAME_LENGTH).fill(message.command, 0, message.command.length);
         const checksum = sha256(sha256(message.payload));
 
-        builder.putBuffer(MAINNET_MAGIC);
+        builder.putBuffer(this.magic);
         builder.putBuffer(commandBuf);
         builder.putUInt32LE(message.payload.length);
         builder.putBuffer(checksum.slice(0, 4));
@@ -38,25 +42,24 @@ class Connection extends EventEmitter {
 
     // cursed pattern
     async startMessageLoop() {
-
-        await this.socket.ready();
         
         while(true) {
             
             const magic = await this.socket.read(4);
-            if(Buffer.compare(magic, MAINNET_MAGIC) !== 0) {
+            if(Buffer.compare(magic, this.magic) !== 0) {
                 throw new Error("Invalid magic");
             }
 
             // commands must be padded with zeroes only (protocol.cpp:107)
-            const commandBuf = await this.socket.read(12);
+            const commandBuf = await this.socket.read(COMMAND_NAME_LENGTH);
             for(let i = 1; i < commandBuf.length; i++) {
                 if(commandBuf[i - 1] == 0 && commandBuf[i] != 0) {
                     throw new Error("Invalid command (non-zero padding)");
                 }
             }
 
-            // TODO: figure out reference client's behavior when all 12 command bytes are nonzero
+            // TODO: figure out reference client's behavior when all command bytes are nonzero
+            // for now, bad things will happen!
             const command = commandBuf.slice(0, commandBuf.indexOf(0)).toString("utf-8");
 
             // read payload
