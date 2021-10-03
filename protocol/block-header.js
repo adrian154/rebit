@@ -3,6 +3,7 @@ const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
 const serialize = (block) => {
 
     const builder = new BufferBuilder();
+    
     builder.putInt32LE(block.version);
     builder.putBuffer(block.prevBlockHash);
     builder.putBuffer(block.merkleRoot);

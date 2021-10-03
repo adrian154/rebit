@@ -3,9 +3,11 @@ const {sha256} = require("../util/crypto.js");
 
 // magic number (chainparams.cpp:102)
 const MAINNET_MAGIC = Buffer.from([0xF9, 0xBE, 0xB4, 0xD9]);
+const TESTNET_MAGIC = Buffer.from([0xFA, 0xBF, 0xB5, 0xDA]);
 
 // map commands -> deserializers
 const DESERIALIZERS = {
+    
 };
 
 class Connection {
@@ -16,11 +18,11 @@ class Connection {
     }
 
     // serialize network message
-    writeMessage(message) {
+    send(message) {
         
         const builder = new BufferBuilder();
         const commandBuf = Buffer.alloc(12).fill(message.command, 0, message.command.length);
-        const checksum = sha256(message.payload);
+        const checksum = sha256(sha256(message.payload));
 
         builder.putBuffer(MAINNET_MAGIC);
         builder.putBuffer(commandBuf);
@@ -28,7 +30,6 @@ class Connection {
         builder.putBuffer(checksum.slice(0, 4));
         builder.putBuffer(message.payload);
 
-        console.log(builder.build());
         this.socket.write(builder.build());
 
     }

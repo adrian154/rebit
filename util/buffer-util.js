@@ -10,18 +10,40 @@ class BufferBuilder {
         return this;
     }
 
+    putUInt8(value) {
+        const buf = Buffer.alloc(1);
+        buf.writeUInt8(value);
+        return this.putBuffer(buf);
+    }
+
+    putUInt16BE(value) {
+        const buf = Buffer.alloc(2);
+        buf.writeUInt16BE(value);
+        return this.putBuffer(buf);
+    }
+
     putInt32LE(value) {
         const buf = Buffer.alloc(4);
         buf.writeInt32LE(value);
-        this.buffers.push(buf);
-        return this;
+        return this.putBuffer(buf);
     }
 
     putUInt32LE(value) {
         const buf = Buffer.alloc(4);
         buf.writeUInt32LE(value);
-        this.buffers.push(buf);
-        return this;
+        return this.putBuffer(buf);
+    }
+
+    putInt64LE(value) {
+        const buf = Buffer.alloc(8);
+        buf.writeBigInt64LE(value);
+        return this.putBuffer(buf);
+    }
+
+    putUInt64LE(value) {
+        const buf = Buffer.alloc(8);
+        buf.writeBigUInt64LE(value);
+        return this.putBuffer(buf);
     }
 
     putVarInt(value) {
@@ -55,9 +77,17 @@ class BufferBuilder {
 
     }
 
+    putVarStr(string) {
+        const buf = Buffer.from(string, "utf-8");
+        this.putVarInt(buf.length);
+        this.putBuffer(buf);
+        return this;
+    }
+
     build() {
         return Buffer.concat(this.buffers);
     }
+
 };
 
 class BufferReader {
@@ -81,6 +111,7 @@ class BufferReader {
     }
 
     readUInt8()     { return this.buffer.readUInt8(this.advance(1)); }
+    readUInt16BE()  { return this.buffer.readUInt16BE(this.advance(2)); }
     readInt32LE()   { return this.buffer.readInt32LE(this.advance(4)); }
     readUInt32LE()  { return this.buffer.readUInt32LE(this.advance(4)); }
     readInt64LE()   { return this.buffer.readBigInt64LE(this.advance(8)); }   
@@ -99,7 +130,7 @@ class BufferReader {
         if(first < 0xFD) return first;
         if(first < 0xFE) return this.readUInt8() | (this.readUInt8() << 8);
         if(first < 0xFF) return this.readUInt8() | (this.readUInt8() << 8) | (this.readUInt8() << 16) | (this.readUInt8() << 24);
-        throw new Error("Use readBigVarInt()");
+        throw new Error("Encountered varInt() that was too big!");
     }
 
     readBigVarInt() {
@@ -115,6 +146,12 @@ class BufferReader {
             (this.readBigUInt8() << 40n) |
             (this.readBigUInt8() << 48n) |
             (this.readBigUInt8() << 56n);
+    }
+
+    readVarStr(maxLength) {
+        const length = this.readVarInt();
+        if(length > maxLength) throw new Error("Encountered string that was too long!");
+        return this.readBuffer(length).toString("utf-8");
     }
 
 };
