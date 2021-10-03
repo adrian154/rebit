@@ -7,6 +7,9 @@ module.exports = {
     // net.h:59
     MAX_USER_AGENT_LENGTH: 256,
 
-    COMMAND_NAME_LENGTH: 12
+    COMMAND_NAME_LENGTH: 12,
+
+    // net_processing.cpp:78
+    MAX_INVENTORY_ENTRIES: 50000
 
 };

@@ -101,6 +101,14 @@ class Peer {
             // TODO
         });
 
+        this.connection.on("feefilter", message => {
+            // TODO
+        });
+
+        this.connection.on("inv", message => {
+            // TODO
+        });
+
     }
 
 }

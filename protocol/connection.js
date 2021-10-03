@@ -3,20 +3,23 @@ const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
 const {COMMAND_NAME_LENGTH, MAINNET_MAGIC} = require("./constants.js");
 
-// some messages share deserializers
+// some messages share deserializers, import them here instead of doing it twice
 const PingPong = require("./pingpong.js");
 const GetheadersGetblocks = require("./getheaders-getblocks");
 
 // map commands -> deserializers
+// functions w/o a payload are deserialized with an empty function
 const DESERIALIZERS = {
-    version: require("./version.js").deserialize,
-    verack: () => {},
-    sendheaders: () => {},
-    sendcmpct: require("./sendcmpct.js").deserialize,
-    ping: PingPong.deserialize,
-    pong: PingPong.deserialize,
-    getheaders: GetheadersGetblocks.deserialize,
-    getblocks: GetheadersGetblocks.deserialize
+    version:        require("./version.js").deserialize,
+    verack:         () => {},
+    sendheaders:    () => {},
+    sendcmpct:      require("./sendcmpct.js").deserialize,
+    ping:           PingPong.deserialize,
+    pong:           PingPong.deserialize,
+    getheaders:     GetheadersGetblocks.deserialize,
+    getblocks:      GetheadersGetblocks.deserialize,
+    feefilter:      require("./feefilter.js").deserialize,
+    inv:            require("./inv.js").deserialize
 };
 
 // Abstract away message handling and deserialization
@@ -91,6 +94,7 @@ class Connection extends EventEmitter {
             }
 
             // emit event
+            // TODO: handle failed deserialization
             const message = DESERIALIZERS[command](payload, this.version);
             console.log(command, message);
             this.emit(command, message);

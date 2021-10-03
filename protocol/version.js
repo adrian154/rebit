@@ -1,3 +1,4 @@
+// assume protocol version >= 209 (starting height field exists)
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
 const Address = require("./address.js");
 const {MAX_USER_AGENT_LENGTH} = require("./constants.js");
@@ -11,7 +12,6 @@ const serialize = (version) => {
     builder.putUInt64LE(version.timestampBig);
     builder.putBuffer(Address.serialize(version.receiverAddr));
 
-    // assume protocol version >= 209
     builder.putBuffer(Address.serialize(version.senderAddr));
     builder.putUInt64LE(version.nonceBig);
     builder.putVarStr(version.userAgent);
@@ -37,7 +37,6 @@ const deserialize = (obj) => {
     result.timestampBig = reader.readUInt64LE();
     result.receiverAddr = Address.deserialize(reader, result.version, true);
 
-    // assume protocol version >= 209
     result.senderAddr = Address.deserialize(reader, result.version, true);
     result.nonceBig = reader.readUInt64LE();
     result.userAgent = reader.readVarStr(MAX_USER_AGENT_LENGTH); 

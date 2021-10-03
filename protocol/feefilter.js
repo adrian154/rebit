@@ -1,13 +1,10 @@
-// see BIP 152
+// see BIP 133
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
 
-const serialize = (sendcmpct) => {
+const serialize = (feefilter) => {
 
     const builder = new BufferBuilder();
-
-    builder.putUInt8(sendcmpct.enabled);
-    builder.putUInt64LE(sendcmpct.versionBig);
-
+    builder.putUInt64LE(feefilter.feerateBig);
     return builder.build();
 
 };
@@ -16,8 +13,7 @@ const deserialize = (obj) => {
 
     const reader = obj instanceof BufferReader ? obj : new BufferReader(obj);
     return {
-        enabled: Boolean(reader.readUInt8()),
-        versionBig: reader.readUInt64LE()
+        feerateBig: reader.readUInt64LE()
     };
 
 };
