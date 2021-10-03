@@ -15,6 +15,7 @@ class Connection {
     // this project should've really been written in TypeScript
     constructor(socketWrapper) {
         this.socket = socketWrapper;
+        this.startMessageLoop();
     }
 
     // serialize network message
@@ -35,8 +36,10 @@ class Connection {
     }
 
     // is this a cursed pattern? I think so
-    async messageLoop() {
+    async startMessageLoop() {
 
+        await this.socket.ready();
+        
         while(true) {
             
             const magic = await this.socket.read(4);
@@ -56,12 +59,12 @@ class Connection {
             const command = commandBuf.slice(0, commandBuf.indexOf(0)).toString("utf-8");
 
             // read payload
-            const payloadLength = await this.socket.read(4).readUInt32LE();
+            const payloadLength = (await this.socket.read(4)).readUInt32LE();
             const payloadChecksum = await this.socket.read(4);
             const payload = await this.socket.read(payloadLength);
 
             // verify payload integrity
-            if(Buffer.compare(payloadChecksum, sha256(payload).slice(0, 4)) !== 0) {
+            if(Buffer.compare(payloadChecksum, sha256(sha256(payload)).slice(0, 4)) !== 0) {
                 throw new Error("Message payload and checksum don't match");
             }
 
@@ -70,8 +73,8 @@ class Connection {
             }
 
             const message = DESERIALIZERS[command](payload);
+
             // TODO: do something with this message
-            console.log(message);
 
         }
 

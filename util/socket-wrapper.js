@@ -25,6 +25,8 @@ class SocketWrapper {
 
         this.socket.on("data", (data) => {
 
+            console.log(data);
+
             if(this.buffer) {
                 this.buffer = Buffer.concat([this.buffer, data]);
             } else {
@@ -36,7 +38,7 @@ class SocketWrapper {
                 this.buffer = this.buffer.slice(this.bytesToRead, this.buffer.length);
                 this.bytesToRead = null;
                 this.resolveRead(data);
-            }
+            } 
 
         });
 
@@ -46,7 +48,7 @@ class SocketWrapper {
         this.socket.write(data);
     }
 
-    async awaitReady() {
+    async ready() {
         if(this.resolveOnReady) throw new Error("awaitReady() already called!");
         return (this.socket.readyState === "open") || new Promise((resolve, reject) => {
             this.resolveOnReady = resolve;
@@ -55,7 +57,7 @@ class SocketWrapper {
     }
 
     async read(count) {
-        
+
         if(this.bytesToRead) throw new Error("read() already called!");
         
         // check if requested bytes are present already
