@@ -1,3 +1,3 @@
-# bitcoin
+# rebit
 
-bitcoin utils
+A collection of Bitcoin utilities.
