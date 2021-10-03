@@ -1,3 +1,4 @@
+// now chainable!
 class BufferBuilder {
 
     constructor() {
@@ -23,14 +24,36 @@ class BufferBuilder {
         return this;
     }
 
-    // TODO: 64-bit integer handling
     putVarInt(value) {
         if(value < 0xFD)       { this.buffers.push(Buffer.from([value])); return this; }
         if(value < 0xFFFF)     { this.buffers.push(Buffer.from([0xFD, value & 0xff, (value >> 8) & 0xff])); return this; }
         if(value < 0xFFFFFFFF) { this.buffers.push(Buffer.from([0xFE, value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, (value >> 24) & 0xff])); return this; }
-        throw new Error("64-bit integers not yet supported!");
+        throw new Error("Use putBigVarInT()");
     }
 
+    // for some ungodly reason you cannot mix numbers and bigints in Buffer#from()
+    // HOWEVER, you can have a fucking function in that array, which js CONVENIENTLY treats as zero
+    putBigVarInt(value) {
+        
+        if(value < 0xFD)       { this.buffers.push(Buffer.from([value])); return this; }
+        if(value < 0xFFFF)     { this.buffers.push(Buffer.from([0xFD, Number(value & 0xffn), Number((value >> 8n) & 0xff)])); return this; }
+        if(value < 0xFFFFFFFF) { this.buffers.push(Buffer.from([0xFE, Number(value & 0xffn), Number((value >> 8n) & 0xff), Number((value >> 16n) & 0xff), Number((value >> 24n) & 0xff)])); return this; }
+        
+        this.buffers.push(Buffer.from([
+            0xFF,
+            Number(value & 0xffn),
+            Number((value >> 8n) & 0xffn),
+            Number((value >> 16n) & 0xffn),
+            Number((value >> 24n) & 0xffn),
+            Number((value >> 32n) & 0xffn),
+            Number((value >> 40n) & 0xffn),
+            Number((value >> 48n) & 0xffn),
+            Number((value >> 56n) & 0xffn)
+        ]));
+
+        return this;
+
+    }
 
     build() {
         return Buffer.concat(this.buffers);

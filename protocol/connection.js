@@ -4,6 +4,10 @@ const {sha256} = require("../util/crypto.js");
 // magic number (chainparams.cpp:102)
 const MAINNET_MAGIC = Buffer.from([0xF9, 0xBE, 0xB4, 0xD9]);
 
+// map commands -> deserializers
+const DESERIALIZERS = {
+};
+
 class Connection {
 
     // this project should've really been written in TypeScript
@@ -60,8 +64,13 @@ class Connection {
                 throw new Error("Message payload and checksum don't match");
             }
 
-            // deserialize payload
-            // TODO
+            if(!DESERIALIZERS[command]) {
+                throw new Error(`Can't deserialize unknown command "${command}"`);
+            }
+
+            const message = DESERIALIZERS[command](payload);
+            // TODO: do something with this message
+            console.log(message);
 
         }
 
