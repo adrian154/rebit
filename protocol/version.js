@@ -35,9 +35,9 @@ const deserialize = (obj) => {
     result.version = reader.readInt32LE();
     result.servicesBig = reader.readUInt64LE();
     result.timestampBig = reader.readUInt64LE();
-    result.receiverAddr = Address.deserialize(reader, result.version, true);
+    result.receiverAddr = Address.deserialize(reader, true);
 
-    result.senderAddr = Address.deserialize(reader, result.version, true);
+    result.senderAddr = Address.deserialize(reader, true);
     result.nonceBig = reader.readUInt64LE();
     result.userAgent = reader.readVarStr(MAX_USER_AGENT_LENGTH); 
     result.startHeight = reader.readInt32LE();

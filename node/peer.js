@@ -4,6 +4,7 @@ const {randomUInt64} = require("../util/crypto.js");
 const PingPong = require("../protocol/pingpong.js");
 const Version = require("../protocol/version.js");
 const {ipToString} = require("../util/misc.js");
+const {PING_INTERVAL} = require("./config.js");
 const misc = require("../util/misc.js");
 const net = require("net");
 
@@ -25,6 +26,11 @@ class Peer {
             throw new Error("What do you think you're doing?"); // FIXME
         }
 
+        // add all the important logic
+        this.setupMessageHandlers();
+        this.startPingInterval();
+
+        // send version
         this.connection.on("ready", async () => {
             
             this.versionNonce = await randomUInt64();
@@ -54,11 +60,33 @@ class Peer {
 
         });
 
+    }
+
+    startPingInterval() {
+        this.pingInterval = setInterval(async () => {
+            if(this.versionAcknowledged) {
+                this.connection.send({
+                    command: "ping",
+                    payload: PingPong.serialize({
+                        nonce: await randomUInt64()
+                    })
+                });
+            }
+        }, PING_INTERVAL * 1000);
+    }
+
+    close() {
+        clearInterval(this.pingInterval);
+        this.connection.close();
+    }
+
+    setupMessageHandlers() {
+
         this.connection.on("version", message => {
             
             // don't connect to self
             if(this.versionNonce === message.nonceBig) {
-                this.connection.close();
+                this.close();
                 return;
             }
 
@@ -106,6 +134,10 @@ class Peer {
         });
 
         this.connection.on("inv", message => {
+            // TODO
+        });
+
+        this.connection.on("addr", message => {
             // TODO
         });
 

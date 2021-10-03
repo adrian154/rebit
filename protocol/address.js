@@ -1,3 +1,4 @@
+// assume version >= 31402 (time field present in address, except in version message)
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
 
 const serialize = (address) => {
@@ -14,12 +15,12 @@ const serialize = (address) => {
 };
 
 // Network addresses sent in the version message lack the time field
-const deserialize = (obj, version, isVersionMessage) => {
+const deserialize = (obj, isVersionMessage) => {
 
     const reader = obj instanceof BufferReader ? obj : new BufferReader(obj);
     const result = {};
 
-    if(version >= 31402 && !isVersionMessage) result.time = reader.readUInt32LE();
+    if(!isVersionMessage) result.time = reader.readUInt32LE();
     result.servicesBig = reader.readUInt64LE();
     result.ip = reader.readBuffer(16);
     result.port = reader.readUInt16BE();

@@ -10,6 +10,9 @@ module.exports = {
     COMMAND_NAME_LENGTH: 12,
 
     // net_processing.cpp:78
-    MAX_INVENTORY_ENTRIES: 50000
+    MAX_INVENTORY_ENTRIES: 50000,
+
+    // net_processing:158
+    MAX_ADDR_ENTRIES: 1000
 
 };

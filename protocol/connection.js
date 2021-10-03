@@ -19,7 +19,8 @@ const DESERIALIZERS = {
     getheaders:     GetheadersGetblocks.deserialize,
     getblocks:      GetheadersGetblocks.deserialize,
     feefilter:      require("./feefilter.js").deserialize,
-    inv:            require("./inv.js").deserialize
+    inv:            require("./inv.js").deserialize,
+    addr:           require("./addr.js").deserialize
 };
 
 // Abstract away message handling and deserialization

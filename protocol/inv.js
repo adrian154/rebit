@@ -9,6 +9,7 @@ const serialize = (inv) => {
     for(const entry of inv.inventory) {
         builder.putBuffer(InventoryVector.serialize(entry));
     }
+
     return builder.build();
 
 };
