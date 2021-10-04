@@ -1,12 +1,13 @@
 // assume version >= 31402 (time field present in address, except in version message)
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
+const Services = require("./services.js");
 
 const serialize = (address) => {
 
     const builder = new BufferBuilder();
 
     if(address.time) builder.putUInt32LE(address.time);
-    builder.putUInt64LE(address.servicesBig);
+    builder.putUInt64LE(Services.encode(address.services));
     builder.putBuffer(address.ip);
     builder.putUInt16BE(address.port);
 
@@ -21,7 +22,7 @@ const deserialize = (obj, isVersionMessage) => {
     const result = {};
 
     if(!isVersionMessage) result.time = reader.readUInt32LE();
-    result.servicesBig = reader.readUInt64LE();
+    result.services = Services.decode(reader.readUInt64LE());
     result.ip = reader.readBuffer(16);
     result.port = reader.readUInt16BE();
 

@@ -42,6 +42,10 @@ class SocketWrapper {
 
     }
 
+    close() {
+        this.socket.destroy();
+    }
+
     write(data) {
         this.socket.write(data);
     }

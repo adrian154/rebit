@@ -37,7 +37,7 @@ class Connection extends EventEmitter {
     }
 
     close() {
-        this.socket.socket.close();
+        this.socket.close();
     }
 
     // serialize network message
@@ -54,6 +54,7 @@ class Connection extends EventEmitter {
         builder.putBuffer(checksum.slice(0, 4));
         builder.putBuffer(message.payload);
 
+        console.log("tx: " + message.command);
         this.socket.write(builder.build());
 
     }
@@ -97,7 +98,8 @@ class Connection extends EventEmitter {
             // emit event
             // TODO: handle failed deserialization
             const message = DESERIALIZERS[command](payload, this.version);
-            console.log(command, message);
+            console.log("rx: " + command);
+            console.log(message);
             this.emit(command, message);
 
         }

@@ -4,7 +4,7 @@ const {randomUInt64} = require("../util/crypto.js");
 const PingPong = require("../protocol/pingpong.js");
 const Version = require("../protocol/version.js");
 const {ipToString} = require("../util/misc.js");
-const {PING_INTERVAL} = require("./config.js");
+const {PING_INTERVAL, AWAIT_VERACK_TIME} = require("./config.js");
 const misc = require("../util/misc.js");
 const net = require("net");
 
@@ -39,15 +39,15 @@ class Peer {
                 command: "version",
                 payload: Version.serialize({
                     version: 70015,
-                    servicesBig: 1n,
+                    services: {network: 1}, // TODO: stop hardcoding services
                     timestampBig: BigInt(Math.floor(Date.now() / 1000)),
                     receiverAddr: options.addr || {
-                        servicesBig: 1n,
+                        services: {network: 1},
                         ip: misc.ipv6(misc.parseipv4(options.ip)), // TODO: IPv6 support
                         port: 8333
                     },
                     senderAddr: { // send some bogus - this part is redundant
-                        servicesBig: 0n,
+                        services: {},
                         ip: Buffer.alloc(16),
                         port: 0
                     },
@@ -59,6 +59,14 @@ class Peer {
             });
 
         });
+
+        // drop the connection 
+        setTimeout(() => {
+            if(!this.versionAcknowledged) {
+                console.log("Waiting period for VERACK has passed, disconnecting...");
+                this.close();
+            }
+        }, AWAIT_VERACK_TIME * 1000);
 
     }
 
@@ -90,7 +98,7 @@ class Peer {
                 return;
             }
 
-            console.log(`Connected to peer (running ${message.userAgent})`);
+            console.log(`Connected to peer (running ${message.userAgent}) services=${message.servicesBig}`);
 
             this.version = message.version;
             this.connection.send({

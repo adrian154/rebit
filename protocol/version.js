@@ -1,14 +1,15 @@
 // assume protocol version >= 209 (starting height field exists)
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
-const Address = require("./address.js");
 const {MAX_USER_AGENT_LENGTH} = require("./constants.js");
+const Services = require("./services.js");
+const Address = require("./address.js");
 
 const serialize = (version) => {
 
     const builder = new BufferBuilder();
 
     builder.putInt32LE(version.version);
-    builder.putUInt64LE(version.servicesBig);
+    builder.putUInt64LE(Services.encode(version.services));
     builder.putUInt64LE(version.timestampBig);
     builder.putBuffer(Address.serialize(version.receiverAddr));
 
@@ -33,7 +34,7 @@ const deserialize = (obj) => {
     const result = {};
 
     result.version = reader.readInt32LE();
-    result.servicesBig = reader.readUInt64LE();
+    result.services = Services.decode(reader.readUInt64LE());
     result.timestampBig = reader.readUInt64LE();
     result.receiverAddr = Address.deserialize(reader, true);
 
