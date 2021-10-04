@@ -13,6 +13,8 @@ module.exports = {
     MAX_INVENTORY_ENTRIES: 50000,
 
     // net_processing:158
-    MAX_ADDR_ENTRIES: 1000
+    MAX_ADDR_ENTRIES: 1000,
+
+    MAX_MESSAGE_SIZE: 32 * 1024 * 1024
 
 };

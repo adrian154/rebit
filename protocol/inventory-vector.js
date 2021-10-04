@@ -1,6 +1,6 @@
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
 
-const TYPES = Object.freeze({
+const INVENTORY_TYPES = Object.freeze({
     ERROR: 0,
     MSG_TX: 1,
     MSG_BLOCK: 2,
@@ -30,4 +30,4 @@ const deserialize = (obj) => {
 
 };
 
-module.exports = {serialize, deserialize, TYPES};
+module.exports = {serialize, deserialize, INVENTORY_TYPES};

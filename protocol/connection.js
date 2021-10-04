@@ -1,7 +1,7 @@
 const {EventEmitter} = require("events");
 const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
-const {COMMAND_NAME_LENGTH, MAINNET_MAGIC} = require("./constants.js");
+const {COMMAND_NAME_LENGTH, MAINNET_MAGIC, MAX_MESSAGE_SIZE} = require("./constants.js");
 
 // some messages share deserializers, import them here instead of doing it twice
 const PingPong = require("./pingpong.js");
@@ -9,7 +9,7 @@ const GetheadersGetblocks = require("./getheaders-getblocks");
 
 // map commands -> deserializers
 // functions w/o a payload are deserialized with an empty function
-const DESERIALIZERS = {
+const Deserializers = {
     version:        require("./version.js").deserialize,
     verack:         () => {},
     sendheaders:    () => {},
@@ -22,6 +22,9 @@ const DESERIALIZERS = {
     inv:            require("./inv.js").deserialize,
     addr:           require("./addr.js").deserialize
 };
+
+// obsolete messages to ignore
+const IgnoredMessages = ["alert", "checkorder", "submitorder", "reply"];
 
 // Abstract away message handling and deserialization
 class Connection extends EventEmitter {
@@ -83,6 +86,10 @@ class Connection extends EventEmitter {
 
             // read payload
             const payloadLength = (await this.socket.read(4)).readUInt32LE();
+            if(payloadLength > MAX_MESSAGE_SIZE) {
+                throw new Error("Received a message that exceeded maximum size");
+            }
+
             const payloadChecksum = await this.socket.read(4);
             const payload = await this.socket.read(payloadLength);
 
@@ -91,15 +98,18 @@ class Connection extends EventEmitter {
                 throw new Error("Message payload and checksum don't match");
             }
 
-            if(!DESERIALIZERS[command]) {
+            if(IgnoredMessages.includes(command)) {
+                continue;
+            }
+
+            if(!Deserializers[command]) {
                 throw new Error(`Can't deserialize unknown command "${command}"`);
             }
 
             // emit event
             // TODO: handle failed deserialization
-            const message = DESERIALIZERS[command](payload, this.version);
+            const message = Deserializers[command](payload, this.version);
             console.log("rx: " + command);
-            console.log(message);
             this.emit(command, message);
 
         }

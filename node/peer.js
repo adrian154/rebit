@@ -7,6 +7,7 @@ const {ipToString} = require("../util/misc.js");
 const {PING_INTERVAL, AWAIT_VERACK_TIME} = require("./config.js");
 const misc = require("../util/misc.js");
 const net = require("net");
+const { INVENTORY_TYPES } = require("../protocol/inventory-vector.js");
 
 // Store peer state, handle events
 class Peer {
@@ -38,9 +39,9 @@ class Peer {
             this.connection.send({
                 command: "version",
                 payload: Version.serialize({
-                    version: 70015,
-                    services: {network: 1}, // TODO: stop hardcoding services
-                    timestampBig: BigInt(Math.floor(Date.now() / 1000)),
+                    version: 70011,
+                    services: {network: 0}, // TODO: stop hardcoding services
+                    timestamp: Math.floor(Date.now() / 1000),
                     receiverAddr: options.addr || {
                         services: {network: 1},
                         ip: misc.ipv6(misc.parseipv4(options.ip)), // TODO: IPv6 support
@@ -51,7 +52,7 @@ class Peer {
                         ip: Buffer.alloc(16),
                         port: 0
                     },
-                    nonceBig: this.versionNonce,
+                    nonce: this.versionNonce,
                     userAgent: "Rebit",
                     startHeight: 0,
                     relay: false
@@ -93,12 +94,12 @@ class Peer {
         this.connection.on("version", message => {
             
             // don't connect to self
-            if(this.versionNonce === message.nonceBig) {
+            if(this.versionNonce === message.nonce) {
                 this.close();
                 return;
             }
 
-            console.log(`Connected to peer (running ${message.userAgent}) services=${message.servicesBig}`);
+            console.log(`Connected to peer (running ${message.userAgent}) services=${Object.keys(message.services).filter(service => message.services[service]).join(" ")}`);
 
             this.version = message.version;
             this.connection.send({
@@ -142,7 +143,18 @@ class Peer {
         });
 
         this.connection.on("inv", message => {
-            // TODO
+            const types = {
+                [INVENTORY_TYPES.MSG_TX]: "transaction",
+                [INVENTORY_TYPES.MSG_BLOCK]: "block",
+                [INVENTORY_TYPES.MSG_FILTERED_BLOCK] : "block",
+                [INVENTORY_TYPES.MSG_CMPCT_BLOCK]: "block",
+                [INVENTORY_TYPES.MSG_WITNESS_TX]: "transaction_with_witness",
+                [INVENTORY_TYPES.MSG_WITNESS_BLOCK]: "block_with_witness",
+                [INVENTORY_TYPES.MSG_FILTERED_WITNESS_BLOCK]: "block_with_witness"
+            };
+            for(const item of message.inventory) {
+                console.log(`type=${types[item.type] ?? "unknown"} hash=${item.hash.toString("hex")}`);
+            }
         });
 
         this.connection.on("addr", message => {

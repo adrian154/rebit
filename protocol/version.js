@@ -10,11 +10,11 @@ const serialize = (version) => {
 
     builder.putInt32LE(version.version);
     builder.putUInt64LE(Services.encode(version.services));
-    builder.putUInt64LE(version.timestampBig);
+    builder.putUInt64LE(BigInt(version.timestamp));
     builder.putBuffer(Address.serialize(version.receiverAddr));
 
     builder.putBuffer(Address.serialize(version.senderAddr));
-    builder.putUInt64LE(version.nonceBig);
+    builder.putUInt64LE(version.nonce);
     builder.putVarStr(version.userAgent);
     builder.putInt32LE(version.startHeight);
 
@@ -35,11 +35,11 @@ const deserialize = (obj) => {
 
     result.version = reader.readInt32LE();
     result.services = Services.decode(reader.readUInt64LE());
-    result.timestampBig = reader.readUInt64LE();
+    result.timestamp = Number(reader.readUInt64LE()); // WARNING: 64->53 CAST
     result.receiverAddr = Address.deserialize(reader, true);
 
     result.senderAddr = Address.deserialize(reader, true);
-    result.nonceBig = reader.readUInt64LE();
+    result.nonce = reader.readUInt64LE();
     result.userAgent = reader.readVarStr(MAX_USER_AGENT_LENGTH); 
     result.startHeight = reader.readInt32LE();
 
