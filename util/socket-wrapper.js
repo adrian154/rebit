@@ -8,7 +8,6 @@ class SocketWrapper {
         // set up event handlers
 
         this.socket.on("ready", () => {
-            console.log("ready");
             if(this.resolveOnReady) this.resolveOnReady();
         });
 
@@ -18,7 +17,7 @@ class SocketWrapper {
         });
 
         this.socket.on("close", () => {
-            console.log("close");
+            console.log("<socket close>");
             if(this.rejectOnReady) this.rejectOnReady(new Error("Socket closed"));
             if(this.rejectRead) this.rejectRead(new Error("Socket closed"));
         });
