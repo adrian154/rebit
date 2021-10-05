@@ -1,5 +1,4 @@
 const InventoryVector = require("../protocol/inventory-vector.js");
-const config = require("./config.js");
 const SocketWrapper = require("../util/socket-wrapper.js");
 const Connection = require("../protocol/connection.js");
 const {randomUInt64} = require("../util/crypto.js");
@@ -7,6 +6,7 @@ const Services = require("../protocol/services.js");
 const Address = require("../protocol/address.js");
 const {ipToString} = require("../util/misc.js");
 const misc = require("../util/misc.js");
+const config = require("./config.js");
 const net = require("net");
 
 // Store peer state, handle events
@@ -39,23 +39,19 @@ class Peer {
             this.connection.send({
                 command: "version",
                 payload: {
-                    version: 70011,
-                    services: {network: 0}, // TODO: stop hardcoding services
+                    version: config.PROTOCOL_VERSION,
+                    services: config.SERVICES,
                     timestamp: Math.floor(Date.now() / 1000),
                     receiverAddr: options.addr || {
                         services: {network: 1},
                         ip: misc.ipv6(misc.parseipv4(options.ip)), // TODO: IPv6 support
                         port: 8333
                     },
-                    senderAddr: { // send some bogus - this part is redundant
-                        services: {},
-                        ip: Buffer.alloc(16),
-                        port: 0
-                    },
+                    senderAddr: {services: {}, ip: Buffer.alloc(16), port: 0},
                     nonce: this.versionNonce,
                     userAgent: config.USER_AGENT,
                     startHeight: 0,
-                    relay: false
+                    relay: true
                 }
             });
 
@@ -64,7 +60,7 @@ class Peer {
         // drop the connection 
         setTimeout(() => {
             if(!this.versionAcknowledged) {
-                console.log("Waiting period for VERACK has passed, disconnecting...");
+                console.log("Waiting period for VERACK has passed, giving up on this peer...");
                 this.close();
             }
         }, config.AWAIT_VERACK_TIME * 1000);
