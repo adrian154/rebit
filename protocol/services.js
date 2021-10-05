@@ -20,7 +20,9 @@ const decode = (servicesInt) => ({
     bloom: Boolean(servicesInt & NODE_BLOOM),
     witness: Boolean(servicesInt & NODE_WITNESS),
     compactFilters: Boolean(servicesInt & NODE_COMPACT_FILTERS),
-    networkLimited: Boolean(servicesInt & NODE_NETWORK_LIMITED)
+    pruned: Boolean(servicesInt & NODE_NETWORK_LIMITED)
 });
 
-module.exports = {encode, decode};
+const stringify = services => Object.keys(services).filter(service => services[service]).join(",");
+
+module.exports = {encode, decode, stringify};

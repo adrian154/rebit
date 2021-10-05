@@ -1,5 +1,6 @@
 // assume version >= 31402 (time field present in address, except in version message)
 const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
+const {ipToString} = require("../util/misc.js");
 const Services = require("./services.js");
 
 const serialize = (address) => {
@@ -30,4 +31,6 @@ const deserialize = (obj, isVersionMessage) => {
 
 };
 
-module.exports = {serialize, deserialize};
+const stringify = (address) => `ip=${ipToString(address.ip)} services=${Services.stringify(address.services)} port=${address.port}`;
+
+module.exports = {serialize, deserialize, stringify};

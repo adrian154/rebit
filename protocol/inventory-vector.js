@@ -30,4 +30,17 @@ const deserialize = (obj) => {
 
 };
 
-module.exports = {serialize, deserialize, INVENTORY_TYPES};
+// for use with stringify only
+const TypeNames = {
+    [INVENTORY_TYPES.MSG_TX]: "transaction",
+    [INVENTORY_TYPES.MSG_BLOCK]: "block",
+    [INVENTORY_TYPES.MSG_FILTERED_BLOCK] : "block",
+    [INVENTORY_TYPES.MSG_CMPCT_BLOCK]: "block",
+    [INVENTORY_TYPES.MSG_WITNESS_TX]: "transaction_with_witness",
+    [INVENTORY_TYPES.MSG_WITNESS_BLOCK]: "block_with_witness",
+    [INVENTORY_TYPES.MSG_FILTERED_WITNESS_BLOCK]: "block_with_witness"
+};
+
+const stringify = (inventoryVector) => `type=${TypeNames[inventoryVector.type] ?? "unknown"} hash=${inventoryVector.hash.toString("hex")}`;
+
+module.exports = {serialize, deserialize, INVENTORY_TYPES, stringify};

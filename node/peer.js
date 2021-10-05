@@ -1,13 +1,15 @@
+const InventoryVector = require("../protocol/inventory-vector.js");
+const {PING_INTERVAL, AWAIT_VERACK_TIME} = require("./config.js");
 const SocketWrapper = require("../util/socket-wrapper.js");
 const Connection = require("../protocol/connection.js");
 const {randomUInt64} = require("../util/crypto.js");
 const PingPong = require("../protocol/pingpong.js");
+const Services = require("../protocol/services.js");
+const Address = require("../protocol/address.js");
 const Version = require("../protocol/version.js");
 const {ipToString} = require("../util/misc.js");
-const {PING_INTERVAL, AWAIT_VERACK_TIME} = require("./config.js");
 const misc = require("../util/misc.js");
 const net = require("net");
-const { INVENTORY_TYPES } = require("../protocol/inventory-vector.js");
 
 // Store peer state, handle events
 class Peer {
@@ -99,7 +101,7 @@ class Peer {
                 return;
             }
 
-            console.log(`Connected to peer (running ${message.userAgent}) services=${Object.keys(message.services).filter(service => message.services[service]).join(" ")}`);
+            console.log(`Connected to peer running ${message.userAgent}, services=${Services.stringify(message.services)}`);
 
             this.version = message.version;
             this.connection.send({
@@ -143,22 +145,15 @@ class Peer {
         });
 
         this.connection.on("inv", message => {
-            const types = {
-                [INVENTORY_TYPES.MSG_TX]: "transaction",
-                [INVENTORY_TYPES.MSG_BLOCK]: "block",
-                [INVENTORY_TYPES.MSG_FILTERED_BLOCK] : "block",
-                [INVENTORY_TYPES.MSG_CMPCT_BLOCK]: "block",
-                [INVENTORY_TYPES.MSG_WITNESS_TX]: "transaction_with_witness",
-                [INVENTORY_TYPES.MSG_WITNESS_BLOCK]: "block_with_witness",
-                [INVENTORY_TYPES.MSG_FILTERED_WITNESS_BLOCK]: "block_with_witness"
-            };
             for(const item of message.inventory) {
-                console.log(`type=${types[item.type] ?? "unknown"} hash=${item.hash.toString("hex")}`);
+                console.log(InventoryVector.stringify(item));
             }
         });
 
         this.connection.on("addr", message => {
-            // TODO
+            for(const peer of message.addresses) {
+                console.log(Address.stringify(peer));
+            }
         });
 
     }
