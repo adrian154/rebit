@@ -3,10 +3,8 @@ const {PING_INTERVAL, AWAIT_VERACK_TIME} = require("./config.js");
 const SocketWrapper = require("../util/socket-wrapper.js");
 const Connection = require("../protocol/connection.js");
 const {randomUInt64} = require("../util/crypto.js");
-const PingPong = require("../protocol/pingpong.js");
 const Services = require("../protocol/services.js");
 const Address = require("../protocol/address.js");
-const Version = require("../protocol/version.js");
 const {ipToString} = require("../util/misc.js");
 const misc = require("../util/misc.js");
 const net = require("net");
@@ -40,7 +38,7 @@ class Peer {
 
             this.connection.send({
                 command: "version",
-                payload: Version.serialize({
+                payload: {
                     version: 70011,
                     services: {network: 0}, // TODO: stop hardcoding services
                     timestamp: Math.floor(Date.now() / 1000),
@@ -58,7 +56,7 @@ class Peer {
                     userAgent: "Rebit",
                     startHeight: 0,
                     relay: false
-                })
+                }
             });
 
         });
@@ -78,9 +76,9 @@ class Peer {
             if(this.versionAcknowledged) {
                 this.connection.send({
                     command: "ping",
-                    payload: PingPong.serialize({
+                    payload: {
                         nonce: await randomUInt64()
-                    })
+                    }
                 });
             }
         }, PING_INTERVAL * 1000);
@@ -105,8 +103,7 @@ class Peer {
 
             this.version = message.version;
             this.connection.send({
-                command: "verack",
-                payload: Buffer.alloc(0)
+                command: "verack"
             });
 
         });
@@ -119,9 +116,9 @@ class Peer {
             if(this.versionAcknowledged) {
                 this.connection.send({
                     command: "pong",
-                    payload: PingPong.serialize({
+                    payload: {
                         nonce: message.nonce
-                    })
+                    }
                 })
             }
         });

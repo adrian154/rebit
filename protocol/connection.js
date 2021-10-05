@@ -28,13 +28,20 @@ class Connection extends EventEmitter {
     // TODO: figure out if payload serialization belongs here
     send(message) {
         
+        let payload;
+        if(message.buffer) {
+            payload = message.buffer;
+        } else {
+            payload = Messages[message.command].serialize(message.payload);
+        }
+
         const builder = new BufferBuilder();
         const commandBuf = Buffer.alloc(COMMAND_NAME_LENGTH).fill(message.command, 0, message.command.length);
         const checksum = sha256(sha256(message.payload));
 
         builder.putBuffer(this.magic);
         builder.putBuffer(commandBuf);
-        builder.putUInt32LE(message.payload.length);
+        builder.putUInt32LE(payload);
         builder.putBuffer(checksum.slice(0, 4));
         builder.putBuffer(message.payload);
 
