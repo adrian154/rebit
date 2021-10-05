@@ -37,13 +37,13 @@ class Connection extends EventEmitter {
 
         const builder = new BufferBuilder();
         const commandBuf = Buffer.alloc(COMMAND_NAME_LENGTH).fill(message.command, 0, message.command.length);
-        const checksum = sha256(sha256(message.payload));
+        const checksum = sha256(sha256(payload));
 
         builder.putBuffer(this.magic);
         builder.putBuffer(commandBuf);
-        builder.putUInt32LE(payload);
+        builder.putUInt32LE(payload.length);
         builder.putBuffer(checksum.slice(0, 4));
-        builder.putBuffer(message.payload);
+        builder.putBuffer(payload);
 
         console.log("tx: " + message.command);
         this.socket.write(builder.build());

@@ -1,5 +1,5 @@
 const InventoryVector = require("../protocol/inventory-vector.js");
-const {PING_INTERVAL, AWAIT_VERACK_TIME} = require("./config.js");
+const config = require("./config.js");
 const SocketWrapper = require("../util/socket-wrapper.js");
 const Connection = require("../protocol/connection.js");
 const {randomUInt64} = require("../util/crypto.js");
@@ -53,7 +53,7 @@ class Peer {
                         port: 0
                     },
                     nonce: this.versionNonce,
-                    userAgent: "Rebit",
+                    userAgent: config.USER_AGENT,
                     startHeight: 0,
                     relay: false
                 }
@@ -67,7 +67,7 @@ class Peer {
                 console.log("Waiting period for VERACK has passed, disconnecting...");
                 this.close();
             }
-        }, AWAIT_VERACK_TIME * 1000);
+        }, config.AWAIT_VERACK_TIME * 1000);
 
     }
 
@@ -81,7 +81,7 @@ class Peer {
                     }
                 });
             }
-        }, PING_INTERVAL * 1000);
+        }, config.PING_INTERVAL * 1000);
     }
 
     close() {
