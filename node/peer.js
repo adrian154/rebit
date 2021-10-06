@@ -9,22 +9,23 @@ const misc = require("../util/misc.js");
 const config = require("./config.js");
 const net = require("net");
 
-// Store peer state, handle events
-class Peer {
+// Store peer state, handle messages
+class Peer extends EventEmitter {
 
     constructor(options) {
 
-        // socket shouldn't be directly accessed after connection
-        // so it's not stored as an object property
-        const socket = new net.Socket();
-        this.connection = new Connection(new SocketWrapper(socket));
+        super();
 
-        if(options?.addr) {
-            socket.connect(8333, ipToString(options.addr.ip));
-        } else if(options?.ip) {
-            socket.connect(8333, options.ip);
+        // allow passing in a socket object for inbound connections
+        if(options.socket) {
+            this.connection = new Connection(new SocketWrapper(socket));
+        } else if(options.addr || options.ip) {
+            this.outbound = true; // mark outbound peers - they are more trusted
+            const socket = new net.Socket();
+            this.connection = new Connection(new SocketWrapper(socket));
+            socket.connect(8333, options.ip || ipToString(options.addr.ip));
         } else {
-            throw new Error("What do you think you're doing?"); // FIXME
+            throw new Error("No connection info was given");
         }
 
         // add all the important logic
@@ -32,9 +33,22 @@ class Peer {
         this.startPingInterval();
 
         // send version
+        this.connection.on("close", () => {
+            this.emit("close");
+        });
+
         this.connection.on("ready", async () => {
             
             this.versionNonce = await randomUInt64();
+            
+            const receiverAddr = {
+                services: {network: 1},
+                ip: Buffer.alloc(16), // let's see if anyone cares
+                port: 8333
+            };
+
+            // dummy data (this is redundant anyways)
+            const senderAddr = {services: {}, ip: Buffer.alloc(16), port: 0};
 
             this.connection.send({
                 command: "version",
@@ -42,12 +56,8 @@ class Peer {
                     version: config.PROTOCOL_VERSION,
                     services: config.SERVICES,
                     timestamp: Math.floor(Date.now() / 1000),
-                    receiverAddr: options.addr || {
-                        services: {network: 1},
-                        ip: misc.ipv6(misc.parseipv4(options.ip)), // TODO: IPv6 support
-                        port: 8333
-                    },
-                    senderAddr: {services: {}, ip: Buffer.alloc(16), port: 0},
+                    receiverAddr: receiverAddr,
+                    senderAddr: senderAddr,
                     nonce: this.versionNonce,
                     userAgent: config.USER_AGENT,
                     startHeight: 0,
@@ -104,7 +114,7 @@ class Peer {
 
         });
 
-        this.connection.on("verack", message => {
+        this.connection.on("verack", () => {
             this.versionAcknowledged = true;
         });
 

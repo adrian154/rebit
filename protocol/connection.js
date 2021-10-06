@@ -22,6 +22,7 @@ class Connection extends EventEmitter {
 
     close() {
         this.socket.close();
+        this.emit("close");
     }
 
     // serialize network message
@@ -52,54 +53,59 @@ class Connection extends EventEmitter {
 
     // cursed pattern
     async startMessageLoop() {
+    
+        try {
+            while(true) {
         
-        while(true) {
-            
-            const magic = await this.socket.read(4);
-            if(Buffer.compare(magic, this.magic) !== 0) {
-                throw new Error("Invalid magic");
-            }
-
-            // commands must be padded with zeroes only (protocol.cpp:107)
-            const commandBuf = await this.socket.read(COMMAND_NAME_LENGTH);
-            for(let i = 1; i < commandBuf.length; i++) {
-                if(commandBuf[i - 1] == 0 && commandBuf[i] != 0) {
-                    throw new Error("Invalid command (non-zero padding)");
+                const magic = await this.socket.read(4);
+                if(Buffer.compare(magic, this.magic) !== 0) {
+                    throw new Error("Invalid magic");
                 }
+
+                // commands must be padded with zeroes only (protocol.cpp:107)
+                const commandBuf = await this.socket.read(COMMAND_NAME_LENGTH);
+                for(let i = 1; i < commandBuf.length; i++) {
+                    if(commandBuf[i - 1] == 0 && commandBuf[i] != 0) {
+                        throw new Error("Invalid command (non-zero padding)");
+                    }
+                }
+
+                // TODO: figure out reference client's behavior when all command bytes are nonzero
+                // for now, bad things will happen!
+                const command = commandBuf.slice(0, commandBuf.indexOf(0)).toString("utf-8");
+
+                // read payload
+                const payloadLength = (await this.socket.read(4)).readUInt32LE();
+                if(payloadLength > MAX_MESSAGE_SIZE) {
+                    throw new Error("Received a message that exceeded maximum size");
+                }
+
+                const payloadChecksum = await this.socket.read(4);
+                const payload = await this.socket.read(payloadLength);
+
+                // verify payload integrity
+                if(Buffer.compare(payloadChecksum, sha256(sha256(payload)).slice(0, 4)) !== 0) {
+                    throw new Error("Message payload and checksum don't match");
+                }
+
+                if(IgnoredMessages.includes(command)) {
+                    console.log(command);
+                    continue;
+                }
+
+                if(!Messages[command]) {
+                    throw new Error(`Can't deserialize unknown command "${command}"`);
+                }
+
+                // emit event
+                // TODO: handle failed deserialization
+                const message = Messages[command].deserialize(payload, this.version);
+                console.log("rx: " + command);
+                this.emit(command, message);
+
             }
-
-            // TODO: figure out reference client's behavior when all command bytes are nonzero
-            // for now, bad things will happen!
-            const command = commandBuf.slice(0, commandBuf.indexOf(0)).toString("utf-8");
-
-            // read payload
-            const payloadLength = (await this.socket.read(4)).readUInt32LE();
-            if(payloadLength > MAX_MESSAGE_SIZE) {
-                throw new Error("Received a message that exceeded maximum size");
-            }
-
-            const payloadChecksum = await this.socket.read(4);
-            const payload = await this.socket.read(payloadLength);
-
-            // verify payload integrity
-            if(Buffer.compare(payloadChecksum, sha256(sha256(payload)).slice(0, 4)) !== 0) {
-                throw new Error("Message payload and checksum don't match");
-            }
-
-            if(IgnoredMessages.includes(command)) {
-                continue;
-            }
-
-            if(!Messages[command]) {
-                throw new Error(`Can't deserialize unknown command "${command}"`);
-            }
-
-            // emit event
-            // TODO: handle failed deserialization
-            const message = Messages[command].deserialize(payload, this.version);
-            console.log("rx: " + command);
-            this.emit(command, message);
-
+        } catch(error) {
+            this.close();
         }
 
     }
