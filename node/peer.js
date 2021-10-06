@@ -5,6 +5,7 @@ const {randomUInt64} = require("../util/crypto.js");
 const Services = require("../protocol/services.js");
 const Address = require("../protocol/address.js");
 const {ipToString} = require("../util/misc.js");
+const {EventEmitter} = require("events");
 const misc = require("../util/misc.js");
 const config = require("./config.js");
 const net = require("net");
@@ -151,10 +152,12 @@ class Peer extends EventEmitter {
             for(const item of message.inventory) {
                 console.log(InventoryVector.stringify(item));
             }
+            setTimeout(()=>{
             this.connection.send({
                 command: "getdata",
-                payload: {inventory: [message.inventory[0]]}
+                payload: {inventory: [message.inventory[1]]}
             });
+            }, 1000);
         });
 
         this.connection.on("addr", message => {

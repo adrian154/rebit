@@ -17,7 +17,7 @@ class SocketWrapper {
         });
 
         this.socket.on("close", () => {
-            console.log("<socket close>");
+            console.log("(socket closed)");
             if(this.rejectOnReady) this.rejectOnReady(new Error("Socket closed"));
             if(this.rejectRead) this.rejectRead(new Error("Socket closed"));
         });

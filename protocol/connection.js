@@ -3,6 +3,7 @@ const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
 const Messages = require("./messages.js");
 const {EventEmitter} = require("events");
+const { printHex } = require("../util/misc.js");
 
 // obsolete messages to ignore
 const IgnoredMessages = ["alert", "checkorder", "submitorder", "reply"];
@@ -48,6 +49,7 @@ class Connection extends EventEmitter {
 
         console.log("tx: " + message.command);
         this.socket.write(builder.build());
+        console.log(printHex(builder.build()));
 
     }
 
@@ -89,7 +91,8 @@ class Connection extends EventEmitter {
                 }
 
                 if(IgnoredMessages.includes(command)) {
-                    console.log(command);
+                    console.log(`willingly ignoring "${command}" message`);
+                    console.log(printHex(payload));
                     continue;
                 }
 
