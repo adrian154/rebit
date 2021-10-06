@@ -21,7 +21,8 @@ const deserialize = (obj) => {
     result.blockLocatorHashes = [];
 
     // always at least one hash (hash_stop)
-    for(let i = 0; i < reader.readVarInt() + 1; i++) {
+    const count = reader.readVarInt();
+    for(let i = 0; i < count + 1; i++) {
         result.blockLocatorHashes.push(reader.readBuffer(32));
     }
 

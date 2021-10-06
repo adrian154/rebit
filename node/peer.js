@@ -141,6 +141,10 @@ class Peer {
             for(const item of message.inventory) {
                 console.log(InventoryVector.stringify(item));
             }
+            this.connection.send({
+                command: "getdata",
+                payload: {inventory: [message.inventory[0]]}
+            });
         });
 
         this.connection.on("addr", message => {

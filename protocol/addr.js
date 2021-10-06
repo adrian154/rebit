@@ -7,7 +7,7 @@ const Address = require("./address.js");
 const serialize = (addr) => {
 
     const builder = new BufferBuilder();
-    builder.putVarInt(addr.count);
+    builder.putVarInt(addr.addresses.length);
     for(const address of addr.addresses) {
         builder.putBuffer(Address.serialize(address));
     }
@@ -20,13 +20,13 @@ const deserialize = (obj) => {
     const reader = obj instanceof BufferReader ? obj : new BufferReader(obj);
     const result = {};
 
-    result.count = reader.readVarInt();
-    if(result.count > MAX_ADDR_ENTRIES) {
+    const count = reader.readVarInt();
+    if(count > MAX_ADDR_ENTRIES) {
         throw new Error("Received too many addresses"); // TODO: verify the satoshi client enforces this on inbound `addr`'s as we do here
     }
 
     result.addresses = [];
-    for(let i = 0; i < result.count; i++) {
+    for(let i = 0; i < count; i++) {
         result.addresses.push(Address.deserialize(reader));
     }
 

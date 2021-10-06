@@ -14,6 +14,8 @@ module.exports = {
     getheaders: require("./getheaders-getblocks.js"),
     getblocks: require("./getheaders-getblocks.js"),
     feefilter: require("./feefilter.js"),
-    inv: require("./inv.js"),
-    addr: require("./addr.js")
+    inv: require("./inv-getdata-notfound.js"),
+    addr: require("./addr.js"),
+    getdata: require("./inv-getdata-notfound.js"),
+    notfound: require("./inv-getdata-notfound.js")
 };
