@@ -51,19 +51,16 @@ class Peer extends EventEmitter {
             // dummy data (this is redundant anyways)
             const senderAddr = {services: {}, ip: Buffer.alloc(16), port: 0};
 
-            this.connection.send({
-                command: "version",
-                payload: {
-                    version: config.PROTOCOL_VERSION,
-                    services: config.SERVICES,
-                    timestamp: Math.floor(Date.now() / 1000),
-                    receiverAddr: receiverAddr,
-                    senderAddr: senderAddr,
-                    nonce: this.versionNonce,
-                    userAgent: config.USER_AGENT,
-                    startHeight: 0,
-                    relay: true
-                }
+            this.connection.send("version", {
+                version: config.PROTOCOL_VERSION,
+                services: config.SERVICES,
+                timestamp: Math.floor(Date.now() / 1000),
+                receiverAddr: receiverAddr,
+                senderAddr: senderAddr,
+                nonce: this.versionNonce,
+                userAgent: config.USER_AGENT,
+                startHeight: 0,
+                relay: true
             });
 
         });
@@ -81,12 +78,7 @@ class Peer extends EventEmitter {
     startPingInterval() {
         this.pingInterval = setInterval(async () => {
             if(this.versionAcknowledged) {
-                this.connection.send({
-                    command: "ping",
-                    payload: {
-                        nonce: await randomUInt64()
-                    }
-                });
+                this.connection.send("ping", {nonce: await randomUInt64()});
             }
         }, config.PING_INTERVAL * 1000);
     }
@@ -109,9 +101,7 @@ class Peer extends EventEmitter {
             console.log(`Connected to peer running ${message.userAgent}, services=${Services.stringify(message.services)}`);
 
             this.version = message.version;
-            this.connection.send({
-                command: "verack"
-            });
+            this.connection.send("verack");
 
         });
 
@@ -121,12 +111,7 @@ class Peer extends EventEmitter {
 
         this.connection.on("ping", message => {
             if(this.versionAcknowledged) {
-                this.connection.send({
-                    command: "pong",
-                    payload: {
-                        nonce: message.nonce
-                    }
-                })
+                this.connection.send("pong", {nonce: message.nonce});
             }
         });
 
@@ -152,12 +137,7 @@ class Peer extends EventEmitter {
             for(const item of message.inventory) {
                 console.log(InventoryVector.stringify(item));
             }
-            setTimeout(()=>{
-            this.connection.send({
-                command: "getdata",
-                payload: {inventory: [message.inventory[1]]}
-            });
-            }, 1000);
+            this.connection.send("getdata", {inventory: [message.inventory[0]]});
         });
 
         this.connection.on("addr", message => {

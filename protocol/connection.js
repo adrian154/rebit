@@ -28,28 +28,22 @@ class Connection extends EventEmitter {
 
     // serialize network message
     // TODO: figure out if payload serialization belongs here
-    send(message) {
+    send(command, payload) {
         
-        let payload;
-        if(message.buffer) {
-            payload = message.buffer;
-        } else {
-            payload = Messages[message.command].serialize(message.payload);
-        }
+        const body = Buffer.isBuffer(payload) ? payload : Messages[command].serialize(payload);
 
         const builder = new BufferBuilder();
-        const commandBuf = Buffer.alloc(COMMAND_NAME_LENGTH).fill(message.command, 0, message.command.length);
-        const checksum = sha256(sha256(payload));
+        const commandBuf = Buffer.alloc(COMMAND_NAME_LENGTH).fill(command, 0, command.length);
+        const checksum = sha256(sha256(body));
 
         builder.putBuffer(this.magic);
         builder.putBuffer(commandBuf);
-        builder.putUInt32LE(payload.length);
+        builder.putUInt32LE(body.length);
         builder.putBuffer(checksum.slice(0, 4));
-        builder.putBuffer(payload);
+        builder.putBuffer(body);
 
-        console.log("tx: " + message.command);
+        console.log("tx: " + command);
         this.socket.write(builder.build());
-        console.log(printHex(builder.build()));
 
     }
 
@@ -92,7 +86,6 @@ class Connection extends EventEmitter {
 
                 if(IgnoredMessages.includes(command)) {
                     console.log(`willingly ignoring "${command}" message`);
-                    console.log(printHex(payload));
                     continue;
                 }
 
@@ -108,6 +101,7 @@ class Connection extends EventEmitter {
 
             }
         } catch(error) {
+            console.error(error);
             this.close();
         }
 
