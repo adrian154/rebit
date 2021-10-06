@@ -1,14 +1,12 @@
 const InventoryVector = require("../protocol/inventory-vector.js");
-const {PING_INTERVAL, AWAIT_VERACK_TIME} = require("./config.js");
 const SocketWrapper = require("../util/socket-wrapper.js");
 const Connection = require("../protocol/connection.js");
 const {randomUInt64} = require("../util/crypto.js");
-const PingPong = require("../protocol/pingpong.js");
 const Services = require("../protocol/services.js");
 const Address = require("../protocol/address.js");
-const Version = require("../protocol/version.js");
 const {ipToString} = require("../util/misc.js");
-const {EventEmitter} = require("events");
+const misc = require("../util/misc.js");
+const config = require("./config.js");
 const net = require("net");
 
 // Store peer state, handle messages
@@ -54,16 +52,17 @@ class Peer extends EventEmitter {
 
             this.connection.send({
                 command: "version",
-                payload: Version.serialize({
-                    version: 70011,
-                    services: {}, // TODO: stop being useless
+                payload: {
+                    version: config.PROTOCOL_VERSION,
+                    services: config.SERVICES,
                     timestamp: Math.floor(Date.now() / 1000),
-                    receiverAddr, senderAddr,
+                    receiverAddr: receiverAddr,
+                    senderAddr: senderAddr,
                     nonce: this.versionNonce,
-                    userAgent: "Rebit",
+                    userAgent: config.USER_AGENT,
                     startHeight: 0,
-                    relay: false
-                })
+                    relay: true
+                }
             });
 
         });
@@ -71,10 +70,10 @@ class Peer extends EventEmitter {
         // drop the connection 
         setTimeout(() => {
             if(!this.versionAcknowledged) {
-                console.log("Waiting period for VERACK has passed, disconnecting...");
+                console.log("Waiting period for VERACK has passed, giving up on this peer...");
                 this.close();
             }
-        }, AWAIT_VERACK_TIME * 1000);
+        }, config.AWAIT_VERACK_TIME * 1000);
 
     }
 
@@ -83,12 +82,12 @@ class Peer extends EventEmitter {
             if(this.versionAcknowledged) {
                 this.connection.send({
                     command: "ping",
-                    payload: PingPong.serialize({
+                    payload: {
                         nonce: await randomUInt64()
-                    })
+                    }
                 });
             }
-        }, PING_INTERVAL * 1000);
+        }, config.PING_INTERVAL * 1000);
     }
 
     close() {
@@ -110,8 +109,7 @@ class Peer extends EventEmitter {
 
             this.version = message.version;
             this.connection.send({
-                command: "verack",
-                payload: Buffer.alloc(0)
+                command: "verack"
             });
 
         });
@@ -124,9 +122,9 @@ class Peer extends EventEmitter {
             if(this.versionAcknowledged) {
                 this.connection.send({
                     command: "pong",
-                    payload: PingPong.serialize({
+                    payload: {
                         nonce: message.nonce
-                    })
+                    }
                 })
             }
         });

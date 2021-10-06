@@ -1,27 +1,8 @@
-const {EventEmitter} = require("events");
+const {COMMAND_NAME_LENGTH, MAINNET_MAGIC, MAX_MESSAGE_SIZE} = require("./constants.js");
 const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
-const {COMMAND_NAME_LENGTH, MAINNET_MAGIC, MAX_MESSAGE_SIZE} = require("./constants.js");
-
-// some messages share deserializers, import them here instead of doing it twice
-const PingPong = require("./pingpong.js");
-const GetheadersGetblocks = require("./getheaders-getblocks");
-
-// map commands -> deserializers
-// functions w/o a payload are deserialized with an empty function
-const Deserializers = {
-    version:        require("./version.js").deserialize,
-    verack:         () => {},
-    sendheaders:    () => {},
-    sendcmpct:      require("./sendcmpct.js").deserialize,
-    ping:           PingPong.deserialize,
-    pong:           PingPong.deserialize,
-    getheaders:     GetheadersGetblocks.deserialize,
-    getblocks:      GetheadersGetblocks.deserialize,
-    feefilter:      require("./feefilter.js").deserialize,
-    inv:            require("./inv.js").deserialize,
-    addr:           require("./addr.js").deserialize
-};
+const Messages = require("./messages.js");
+const {EventEmitter} = require("events");
 
 // obsolete messages to ignore
 const IgnoredMessages = ["alert", "checkorder", "submitorder", "reply"];
@@ -48,15 +29,22 @@ class Connection extends EventEmitter {
     // TODO: figure out if payload serialization belongs here
     send(message) {
         
+        let payload;
+        if(message.buffer) {
+            payload = message.buffer;
+        } else {
+            payload = Messages[message.command].serialize(message.payload);
+        }
+
         const builder = new BufferBuilder();
         const commandBuf = Buffer.alloc(COMMAND_NAME_LENGTH).fill(message.command, 0, message.command.length);
-        const checksum = sha256(sha256(message.payload));
+        const checksum = sha256(sha256(payload));
 
         builder.putBuffer(this.magic);
         builder.putBuffer(commandBuf);
-        builder.putUInt32LE(message.payload.length);
+        builder.putUInt32LE(payload.length);
         builder.putBuffer(checksum.slice(0, 4));
-        builder.putBuffer(message.payload);
+        builder.putBuffer(payload);
 
         console.log("tx: " + message.command);
         this.socket.write(builder.build());
@@ -105,13 +93,13 @@ class Connection extends EventEmitter {
                     continue;
                 }
 
-                if(!Deserializers[command]) {
+                if(!Messages[command]) {
                     throw new Error(`Can't deserialize unknown command "${command}"`);
                 }
 
                 // emit event
                 // TODO: handle failed deserialization
-                const message = Deserializers[command](payload, this.version);
+                const message = Messages[command].deserialize(payload, this.version);
                 console.log("rx: " + command);
                 this.emit(command, message);
 
