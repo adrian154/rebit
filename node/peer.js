@@ -107,7 +107,11 @@ class Peer extends EventEmitter {
 
         this.connection.on("verack", () => {
             this.versionAcknowledged = true;
-            
+            this.connection.send("getheaders", {
+                version: config.PROTOCOL_VERSION,
+                hashes: [config.GENSIS_BLOCK_HASH],
+                stopHash: Buffer.alloc(32)
+            });            
         });
 
         this.connection.on("ping", message => {
@@ -144,6 +148,10 @@ class Peer extends EventEmitter {
             for(const peer of message.addresses) {
                 console.log(Address.stringify(peer));
             }
+        });
+
+        this.connection.on("headers", message => {
+            console.log(message);
         });
 
     }

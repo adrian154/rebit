@@ -3,11 +3,15 @@ const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
 const serialize = (getheaders) => {
 
     const builder = new BufferBuilder();
+    
     builder.putUInt32LE(getheaders.version);
-    builder.putVarInt(getheaders.blockLocatorHashes.length);
-    for(const hash of getheaders.blockLocatorHashes.length){ 
+    builder.putVarInt(getheaders.hashes.length);
+    for(const hash of getheaders.hashes){ 
         builder.putBuffer(hash);
     }
+
+    builder.putBuffer(getheaders.stopHash);
+
     return builder.build();
 
 };
@@ -18,13 +22,14 @@ const deserialize = (obj) => {
     const result = {};
 
     result.version = reader.readUInt32LE();
-    result.blockLocatorHashes = [];
+    result.hashes = [];
 
-    // always at least one hash (hash_stop)
     const count = reader.readVarInt();
-    for(let i = 0; i < count + 1; i++) {
-        result.blockLocatorHashes.push(reader.readBuffer(32));
+    for(let i = 0; i < count; i++) {
+        result.hashes.push(reader.readBuffer(32));
     }
+
+    result.stopHash = reader.readBuffer(32);
 
     return result;
 

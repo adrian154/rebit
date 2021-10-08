@@ -11,6 +11,7 @@ module.exports = {
     addr: require("./addr.js"),
     ping: require("./pingpong.js"),
     pong: require("./pingpong.js"),
+    headers: require("./headers.js"),
     version: require("./version.js"),
     feefilter: require("./feefilter.js"),
     sendcmpct: require("./sendcmpct.js"),
