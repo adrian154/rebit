@@ -107,6 +107,7 @@ class Peer extends EventEmitter {
 
         this.connection.on("verack", () => {
             this.versionAcknowledged = true;
+            
         });
 
         this.connection.on("ping", message => {
@@ -137,7 +138,6 @@ class Peer extends EventEmitter {
             for(const item of message.inventory) {
                 console.log(InventoryVector.stringify(item));
             }
-            this.connection.send("getdata", {inventory: [message.inventory[0]]});
         });
 
         this.connection.on("addr", message => {
