@@ -13,15 +13,16 @@ const net = require("net");
 // Store peer state, handle messages
 class Peer extends EventEmitter {
 
-    constructor(options) {
+    constructor(node, options) {
 
         super();
+        this.node = node;
 
         // allow passing in a socket object for inbound connections
         if(options.socket) {
             this.connection = new Connection(new SocketWrapper(socket));
         } else if(options.addr || options.ip) {
-            this.outbound = true; // mark outbound peers - they are more trusted
+            this.outbound = true; // mark outbound peers (preferred for syncing)
             const socket = new net.Socket();
             this.connection = new Connection(new SocketWrapper(socket));
             socket.connect(8333, options.ip || ipToString(options.addr.ip));
@@ -42,11 +43,8 @@ class Peer extends EventEmitter {
             
             this.versionNonce = await randomUInt64();
             
-            const receiverAddr = {
-                services: {network: 1},
-                ip: Buffer.alloc(16), // let's see if anyone cares
-                port: 8333
-            };
+            // TODO: figure out how much nodes actually care about the validity of this field
+            const receiverAddr = {services: {network: 1}, ip: Buffer.alloc(16), port: 8333};
 
             // dummy data (this is redundant anyways)
             const senderAddr = {services: {}, ip: Buffer.alloc(16), port: 0};
@@ -98,6 +96,8 @@ class Peer extends EventEmitter {
                 return;
             }
 
+            // TODO: penalize nodes for re-sending `version`s after connection is already established
+
             console.log(`Connected to peer running ${message.userAgent}, services=${Services.stringify(message.services)}`);
 
             this.version = message.version;
@@ -122,7 +122,7 @@ class Peer extends EventEmitter {
 
         this.connection.on("sendheaders", message => {
             if(this.versionAcknowledged) {
-                this.canSendHeaders = true; // this message indicates that headers can be sent via `headers` instead of `inv`
+                this.canSendHeaders = true; // this message indicates that blocks can be announced via `headers` instead of `inv`
             }
         });
 
@@ -151,7 +151,7 @@ class Peer extends EventEmitter {
         });
 
         this.connection.on("headers", message => {
-            console.log(message);
+            this.node.ingestHeaders(message.headers);
         });
 
     }

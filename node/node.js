@@ -8,7 +8,9 @@ class Node {
 
     }
 
-    
+    ingestHeader() {
+        // todo: run consensus checks, add headers to some kind of local storage
+    }    
 
 }
 
