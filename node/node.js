@@ -1,3 +1,4 @@
+const Blockchain = require("./blockchain.js");
 const dns = require("dns");
 
 class Node {
@@ -5,12 +6,13 @@ class Node {
     constructor() {
 
         this.peers = [];
+        this.chain = new Blockchain();
 
     }
 
-    ingestHeader() {
-        // todo: run consensus checks, add headers to some kind of local storage
-    }    
+    ingestHeaders(headers) {
+
+    }
 
 }
 
