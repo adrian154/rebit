@@ -6,7 +6,7 @@ const Services = require("../protocol/services.js");
 const Address = require("../protocol/address.js");
 const {ipToString} = require("../util/misc.js");
 const {EventEmitter} = require("events");
-const config = require("./config.js");
+const config = require("../config.js");
 const net = require("net");
 
 // Store peer state, handle messages

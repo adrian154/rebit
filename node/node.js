@@ -11,7 +11,7 @@ class Node {
     }
 
     ingestHeaders(headers) {
-
+        // basic consensus checks: version, PoW, timestamp
     }
 
 }

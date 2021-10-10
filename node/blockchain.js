@@ -8,8 +8,10 @@ class Blockchain extends DataStore {
         super("blockchain.db", "blockchain-schema.sql");
     }
 
-}
+    storeHeader(header, hash, height) {
+        this.prepare("INSERT INTO headers (version, prevHash, merkleRoot, timestamp, targetBits, nonce, hash, height, cumulativeWork)")
+    }
 
-b = new Blockchain();
+}
 
 module.exports = Blockchain;
