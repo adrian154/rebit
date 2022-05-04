@@ -21,9 +21,9 @@ const deserialize = (obj) => {
     
     return {
         version: reader.readInt32LE(),
-        prevBlockHash: reader.readBuffer(32),
+        prevBlockHash: reader.readBuffer(32).reverse().toString("hex"),
         merkleRoot: reader.readBuffer(32),
-        timestamp: reader.readUInt32LE(),
+        timestamp: new Date(reader.readUInt32LE()*1000),
         targetBits: reader.readUInt32LE(),
         nonce: reader.readUInt32LE()
     };

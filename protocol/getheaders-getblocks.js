@@ -11,7 +11,6 @@ const serialize = (getheaders) => {
     }
 
     builder.putBuffer(getheaders.stopHash);
-
     return builder.build();
 
 };

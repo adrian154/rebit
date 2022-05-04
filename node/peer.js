@@ -6,7 +6,7 @@ const Services = require("../protocol/services.js");
 const Address = require("../protocol/address.js");
 const {ipToString} = require("../util/misc.js");
 const {EventEmitter} = require("events");
-const config = require("../config.js");
+const config = require("../config.json");
 const net = require("net");
 
 // Store peer state, handle messages
@@ -108,7 +108,7 @@ class Peer extends EventEmitter {
             this.versionAcknowledged = true;
             this.connection.send("getheaders", {
                 version: config.PROTOCOL_VERSION,
-                hashes: [config.GENSIS_BLOCK_HASH],
+                hashes: [Buffer.from("06e533fd1ada86391f3f6c343204b0d278d4aaec1c0b20aa27ba030000000000", "hex")],
                 stopHash: Buffer.alloc(32)
             });            
         });
@@ -150,7 +150,8 @@ class Peer extends EventEmitter {
         });
 
         this.connection.on("headers", message => {
-            this.node.ingestHeaders(message.headers);            
+            console.log(message);
+            //this.node.ingestHeaders(message.headers);      
         });
 
     }
