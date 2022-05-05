@@ -4,6 +4,7 @@ const {BufferBuilder, BufferReader} = require("../../util/buffer-util.js");
 const {ipToString} = require("../../util/misc.js");
 const Services = require("./services.js");
 
+// assume version >= 31402 (time field present in address, except in version message)
 const serialize = (address) => {
 
     const builder = new BufferBuilder();

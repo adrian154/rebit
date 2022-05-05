@@ -1,33 +1,67 @@
-// Abstract all data storage tasks in case the project moves to another database one day
-
-// deps
+// block tree handling class
 const Database = require("better-sqlite3");
+const Table = require("./table.js");
 const pow = require("./pow.js");
+const fs = require("fs");
 
-// constants
-const SCHEMA = require("fs").readFileSync(__dirname + "/blockchain-schema.sql", {encoding: "utf-8"});
-
-class Blockchain {
+class Blockchain extends Table {
 
     constructor() {
 
-        this.db = new Database("data/blockchain.db");
-        this.db.exec(SCHEMA);
-    
-        // prepare some statements
-        this.getPrevWorkStmt = this.db.prepare("SELECT cumulativeWork FROM headers WHERE hash = ?").pluck();
-        this.selectStmt = this.db.prepare("SELECT * FROM headers WHERE hash = ?");
-        this.insertStmt = this.db.prepare("INSERT INTO headers (version, prevHash, merkleRoot, timestamp, targetBits, nonce, hash, height, cumulativeWork) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        const db = new Database("data/blockchain.db");
+        
+        this.headers = new Table(db, "headers", [
 
-    }
+            // metadata fields
+            "hash BLOB PRIMARY KEY",
+            "height INTEGER NOT NULL",
+            "cumulativeWork INTEGER NOT NULL",
+            
+            // header fields
+            "version INTEGER NOT NULL",
+            "prevHash BLOB NOT NULL",
+            "merkleRoot BLOB NOT NULL",
+            "timestamp INTEGER NOT NULL",
+            "targetBits INTEGER NOT NULL",
+            "nonce INTEGER NOT NULL"
+        ]);
 
-    storeHeader(header, hash, height) {
-        const work = this.getPrevWorkStmt(hash) + pow.calculateWork(header);
-        this.insertStmt.run(header.version, header.prevHash, header.merkleRoot, header.timestamp, header.targetBits, header.nonce, hash, height, work);
     }
 
     getHeader(hash) {
-        return this.selectStmt.run(hash);
+        return this.selectQuery.get(hash);
+    }
+
+    ingestHeader(header) {
+        
+        // TODO: check difficulty
+        // TODO: check timestamp 
+
+        const hash = pow.checkPOW(header);
+        const previous = this.getHeader(header.prevHash);
+        if(!previous) {
+            throw new Error("Refusing to insert orphan header (referring");
+        }
+
+        // TODO: transaction, update chaintips if necessary
+
+        this.insertQuery({
+            
+            // header fields
+            version: header.version,
+            prevHash: header.prevHash,
+            merkleRoot: header.merkleRoot,
+            timestamp: header.timestamp,
+            targetBits: header.targetBits,
+            nonce: header.nonce,
+
+            // metadata fields
+            hash,
+            height: previous.height + 1,
+            cumulativeWork: previous.cumulativeWork + pow.calculateWork(header)   
+
+        });
+
     }
 
 }

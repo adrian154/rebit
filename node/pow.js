@@ -61,6 +61,8 @@ module.exports = {
             throw new Error("Work not proven (hash exceeds target)");
         }
 
+        return hash;
+
     },
 
     // WARNING: THIS MIGHT SIGNIFICANTLY DEVIATE FROM SATOSHI CLIENT BEHAVIOR!
