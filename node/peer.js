@@ -1,12 +1,12 @@
-const InventoryVector = require("../protocol/inventory-vector.js");
+const InventoryVector = require("../protocol/types/inventory-vector.js");
 const SocketWrapper = require("../util/socket-wrapper.js");
 const Connection = require("../protocol/connection.js");
+const Services = require("../protocol/types/services.js");
+const Address = require("../protocol/types/address.js");
 const {randomUInt64} = require("../util/crypto.js");
-const Services = require("../protocol/services.js");
-const Address = require("../protocol/address.js");
 const {ipToString} = require("../util/misc.js");
 const {EventEmitter} = require("events");
-const config = require("../config.js");
+const config = require("../config.json");
 const net = require("net");
 
 // Store peer state, handle messages
@@ -34,9 +34,7 @@ class Peer extends EventEmitter {
         this.startPingInterval();
 
         // send version
-        this.connection.on("close", () => {
-            this.emit("close");
-        });
+        this.connection.on("close", () => this.close());
 
         this.connection.on("ready", async () => {
             
@@ -108,7 +106,7 @@ class Peer extends EventEmitter {
             this.versionAcknowledged = true;
             this.connection.send("getheaders", {
                 version: config.PROTOCOL_VERSION,
-                hashes: [config.GENSIS_BLOCK_HASH],
+                hashes: [Buffer.from("6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000", "hex")],
                 stopHash: Buffer.alloc(32)
             });            
         });
@@ -150,7 +148,8 @@ class Peer extends EventEmitter {
         });
 
         this.connection.on("headers", message => {
-            this.node.ingestHeaders(message.headers);            
+            //this.node.ingestHeaders(message.headers);     
+            console.log(message);
         });
 
     }

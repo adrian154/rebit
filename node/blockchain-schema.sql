@@ -19,5 +19,4 @@ CREATE TABLE IF NOT EXISTS headers (
 /* 'tips' of each blockchain (all chains stem from the genesis block) */
 CREATE TABLE IF NOT EXISTS chainTips ( 
     hash BLOB NOT NULL,
-    active INTEGER NOT NULL /* TODO: figure out a way to constrain this so that only one chain is active at a time */ 
 );

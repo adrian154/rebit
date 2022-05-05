@@ -1,6 +1,6 @@
 // assume protocol version >= 209 (starting height field exists)
-const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
-const {MAX_USER_AGENT_LENGTH} = require("./constants.js");
+const {BufferBuilder, BufferReader} = require("../../util/buffer-util.js");
+const {MAX_USER_AGENT_LENGTH} = require("../constants.js");
 const Services = require("./services.js");
 const Address = require("./address.js");
 

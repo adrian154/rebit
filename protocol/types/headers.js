@@ -1,4 +1,4 @@
-const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
+const {BufferBuilder, BufferReader} = require("../../util/buffer-util.js");
 const BlockHeader = require("./block-header.js");
 
 const serialize = (headers) => {

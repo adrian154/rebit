@@ -1,5 +1,5 @@
 // see BIP 133
-const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
+const {BufferBuilder, BufferReader} = require("../../util/buffer-util.js");
 
 const serialize = (feefilter) => {
 
@@ -11,9 +11,11 @@ const serialize = (feefilter) => {
 
 const deserialize = (obj) => {
 
+    // FIXME: This code casts the feerate (64 bits) to a Number, which can only accurately represent integers up to 2**53 
+    // If the feerate has exceeded 2**53 sat/kb, this code will start behaving unpredictably
     const reader = obj instanceof BufferReader ? obj : new BufferReader(obj);
     return {
-        feerate: Number(reader.readUInt64LE()) // WARNING: 64->53 cast, if feerates exceed 2**53 sat/kb god help us all
+        feerate: Number(reader.readUInt64LE()) 
     };
 
 };

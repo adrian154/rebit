@@ -1,5 +1,5 @@
-const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
-const {MAX_INVENTORY_ENTRIES} = require("./constants.js");
+const {BufferBuilder, BufferReader} = require("../../util/buffer-util.js");
+const {MAX_INVENTORY_ENTRIES} = require("../constants.js");
 const InventoryVector = require("./inventory-vector");
 
 const serialize = (inv) => {

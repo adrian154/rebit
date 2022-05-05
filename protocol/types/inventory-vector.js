@@ -1,4 +1,4 @@
-const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
+const {BufferBuilder, BufferReader} = require("../../util/buffer-util.js");
 
 const INVENTORY_TYPES = Object.freeze({
     ERROR: 0,

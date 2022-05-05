@@ -6,7 +6,6 @@ class SocketWrapper {
         this.buffer = null;
 
         // set up event handlers
-
         this.socket.on("ready", () => {
             if(this.resolveOnReady) this.resolveOnReady();
         });
@@ -17,19 +16,20 @@ class SocketWrapper {
         });
 
         this.socket.on("close", () => {
-            console.log("(socket closed)");
             if(this.rejectOnReady) this.rejectOnReady(new Error("Socket closed"));
             if(this.rejectRead) this.rejectRead(new Error("Socket closed"));
         });
 
         this.socket.on("data", (data) => {
 
+            // accumulate the data
             if(this.buffer) {
                 this.buffer = Buffer.concat([this.buffer, data]);
             } else {
                 this.buffer = data;
             }
 
+            // if enough data is available to fulfill a read request, do it
             if(this.bytesToRead && this.buffer.length >= this.bytesToRead) {
                 const data = this.buffer.slice(0, this.bytesToRead);
                 this.buffer = this.buffer.slice(this.bytesToRead, this.buffer.length);
@@ -68,7 +68,7 @@ class SocketWrapper {
             return data;
         }
 
-        // otherwise, set up promise
+        // otherwise, set up a promise and wait for the data to come in
         this.bytesToRead = count;
         return new Promise((resolve, reject) => {
             this.resolveRead = resolve;

@@ -7,10 +7,10 @@ const NODE_COMPACT_FILTERS = 64n;
 const NODE_NETWORK_LIMITED = 1024n;
 
 const encode = (services) =>
-    (services.network ? NODE_NETWORK : 0n) |
-    (services.getUTXO ? NODE_GET_UTXO : 0n) |
-    (services.bloom ? NODE_BLOOM : 0n) |
-    (services.witness ? NODE_WITNESS : 0n) |
+    (services.network ? NODE_NETWORK : 0n)                |
+    (services.getUTXO ? NODE_GET_UTXO : 0n)               |
+    (services.bloom ? NODE_BLOOM : 0n)                    |
+    (services.witness ? NODE_WITNESS : 0n)                |
     (services.compactFilters ? NODE_COMPACT_FILTERS : 0n) | 
     (services.networkLimited ? NODE_NETWORK_LIMITED : 0n);
 

@@ -1,5 +1,5 @@
 // see BIP 152
-const {BufferBuilder, BufferReader} = require("../util/buffer-util.js");
+const {BufferBuilder, BufferReader} = require("../../util/buffer-util.js");
 
 const serialize = (sendcmpct) => {
 

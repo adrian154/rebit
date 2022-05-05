@@ -1,9 +1,10 @@
+// The main protocol interface. Exposes a Connection where messages are sent and received.
+
 const {COMMAND_NAME_LENGTH, MAINNET_MAGIC, MAX_MESSAGE_SIZE} = require("./constants.js");
 const {BufferBuilder} = require("../util/buffer-util.js");
 const {sha256} = require("../util/crypto.js");
 const Messages = require("./messages.js");
 const {EventEmitter} = require("events");
-const { printHex } = require("../util/misc.js");
 
 // obsolete messages to ignore
 const IgnoredMessages = ["alert", "checkorder", "submitorder", "reply"];
@@ -27,7 +28,6 @@ class Connection extends EventEmitter {
     }
 
     // serialize network message
-    // TODO: figure out if payload serialization belongs here
     send(command, payload) {
         
         const body = Buffer.isBuffer(payload) ? payload : Messages[command].serialize(payload);
@@ -66,9 +66,7 @@ class Connection extends EventEmitter {
                     }
                 }
 
-                // TODO: figure out reference client's behavior when all command bytes are nonzero
-                // for now, bad things will happen!
-                const command = commandBuf.slice(0, commandBuf.indexOf(0)).toString("utf-8");
+                const command = commandBuf.slice(0, commandBuf.indexOf(0) || commandBuf.length).toString("utf-8");
 
                 // read payload
                 const payloadLength = (await this.socket.read(4)).readUInt32LE();
@@ -101,7 +99,7 @@ class Connection extends EventEmitter {
 
             }
         } catch(error) {
-            console.error(error);
+            this.emit("error", error);
             this.close();
         }
 
